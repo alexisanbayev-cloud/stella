@@ -171,7 +171,13 @@ function layout(content) {
 }
 
 function ordersPage() {
-    const orders = DATA.orders.filter(o => o.dealer_code === S.user?.dealer_code);
+    const orders = DATA.orders
+        .filter(o => o.dealer_code === S.user?.dealer_code)
+        .sort((a, b) => {
+            const dateA = new Date(a.order_date || 0);
+            const dateB = new Date(b.order_date || 0);
+            return dateB - dateA; // newest first
+        });
     if (!orders.length) return `<div class="bg-white rounded-xl p-12 text-center text-gray-500">${t('noOrders')}</div>`;
     
     return `<h2 class="text-xl font-semibold mb-6">${t('myOrders')} (${orders.length})</h2>
