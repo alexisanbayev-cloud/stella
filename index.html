@@ -8,11 +8,12 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; }
         .gradient-bg { background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); }
+        .status-pending { background: #f3f4f6; color: #374151; }
         .status-production { background: #fef3c7; color: #92400e; }
         .status-ready { background: #d1fae5; color: #065f46; }
         .status-shipped { background: #dbeafe; color: #1e40af; }
-        .status-pending { background: #f3f4f6; color: #374151; }
-        .cat-active { background: #3b82f6; color: white; }
+        .progress-bar { background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #3b82f6, #10b981); height: 100%; transition: width 0.3s; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -21,7 +22,7 @@
             <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
                 <div class="text-6xl mb-4">📊</div>
                 <h2 class="text-xl font-bold text-gray-800 mb-2">Loading...</h2>
-                <p class="text-gray-500">Connecting to Google Sheets...</p>
+                <p class="text-gray-500">Connecting to database...</p>
             </div>
         </div>
     </div>
@@ -34,10 +35,8 @@ const CONFIG = {
     SPREADSHEET_ID: '1kQcSiTcmPu1dfbBH9wVEOeYOpgSXlfzbeur8u32373k',
     API_KEY: 'AIzaSyBaJW2t64e9TI3_Xw8-fgo9iB-o37WrBDM',
     SHEETS: {
-        DEALERS: 'Dealers',
-        PRODUCTS: 'Products', 
         ORDERS: 'Orders',
-        ORDER_ITEMS: 'Order Items'
+        DEALERS: 'Dealers'
     }
 };
 
@@ -45,48 +44,45 @@ const CONFIG = {
 // TRANSLATIONS
 // ============================================
 const T = {
-    en: { welcome:"Stella Dealer Portal", login:"Login", dealerCode:"Dealer Code", password:"Password", myOrders:"My Orders", newOrder:"New Order", logout:"Logout", orderNo:"Order #", date:"Date", status:"Status", ready:"Ready Date", total:"Total", details:"Details", noOrders:"No orders yet", pending:"Pending", production:"In Production", readyStatus:"Ready", shipped:"Shipped", selectProducts:"Select Products", cart:"Order Summary", empty:"Cart is empty", submit:"Submit Order", submitted:"Order submitted!", notes:"Notes", back:"Back", items:"Items", qty:"Qty", error:"Invalid credentials", currency:"€", size:"Size", color:"Color/Decor", pcs:"pcs", search:"Search products...", allCategories:"All Products" },
-    de: { welcome:"Stella Händlerportal", login:"Anmelden", dealerCode:"Händlercode", password:"Passwort", myOrders:"Bestellungen", newOrder:"Neue Bestellung", logout:"Abmelden", orderNo:"Best.Nr.", date:"Datum", status:"Status", ready:"Fertig", total:"Gesamt", details:"Details", noOrders:"Keine Bestellungen", pending:"Ausstehend", production:"In Produktion", readyStatus:"Fertig", shipped:"Versendet", selectProducts:"Produkte", cart:"Übersicht", empty:"Warenkorb leer", submit:"Absenden", submitted:"Erfolgreich!", notes:"Notizen", back:"Zurück", items:"Artikel", qty:"Menge", error:"Ungültige Daten", currency:"€", size:"Größe", color:"Farbe/Dekor", pcs:"Stk", search:"Suchen...", allCategories:"Alle Produkte" },
-    it: { welcome:"Portale Stella", login:"Accedi", dealerCode:"Codice", password:"Password", myOrders:"Ordini", newOrder:"Nuovo Ordine", logout:"Esci", orderNo:"Ordine", date:"Data", status:"Stato", ready:"Pronto", total:"Totale", details:"Dettagli", noOrders:"Nessun ordine", pending:"In Attesa", production:"In Produzione", readyStatus:"Pronto", shipped:"Spedito", selectProducts:"Prodotti", cart:"Riepilogo", empty:"Carrello vuoto", submit:"Invia", submitted:"Inviato!", notes:"Note", back:"Indietro", items:"Articoli", qty:"Qtà", error:"Credenziali errate", currency:"€", size:"Misura", color:"Colore", pcs:"pz", search:"Cerca...", allCategories:"Tutti" },
-    fr: { welcome:"Portail Stella", login:"Connexion", dealerCode:"Code", password:"Mot de passe", myOrders:"Commandes", newOrder:"Nouvelle", logout:"Déconnexion", orderNo:"N°", date:"Date", status:"Statut", ready:"Prêt", total:"Total", details:"Détails", noOrders:"Aucune commande", pending:"En Attente", production:"En Production", readyStatus:"Prêt", shipped:"Expédié", selectProducts:"Produits", cart:"Résumé", empty:"Panier vide", submit:"Envoyer", submitted:"Envoyé!", notes:"Notes", back:"Retour", items:"Articles", qty:"Qté", error:"Invalide", currency:"€", size:"Taille", color:"Couleur", pcs:"pcs", search:"Rechercher...", allCategories:"Tous" },
-    tr: { welcome:"Stella Bayi Portalı", login:"Giriş", dealerCode:"Bayi Kodu", password:"Şifre", myOrders:"Siparişler", newOrder:"Yeni Sipariş", logout:"Çıkış", orderNo:"Sipariş", date:"Tarih", status:"Durum", ready:"Hazır", total:"Toplam", details:"Detay", noOrders:"Sipariş yok", pending:"Bekliyor", production:"Üretimde", readyStatus:"Hazır", shipped:"Sevk Edildi", selectProducts:"Ürünler", cart:"Özet", empty:"Sepet boş", submit:"Gönder", submitted:"Gönderildi!", notes:"Notlar", back:"Geri", items:"Ürünler", qty:"Adet", error:"Hatalı giriş", currency:"€", size:"Boyut", color:"Renk", pcs:"ad", search:"Ara...", allCategories:"Tümü" },
-    el: { welcome:"Πύλη Stella", login:"Σύνδεση", dealerCode:"Κωδικός", password:"Κωδικός", myOrders:"Παραγγελίες", newOrder:"Νέα", logout:"Έξοδος", orderNo:"Αρ.", date:"Ημ/νία", status:"Κατάσταση", ready:"Έτοιμο", total:"Σύνολο", details:"Λεπτομ.", noOrders:"Καμία", pending:"Αναμονή", production:"Παραγωγή", readyStatus:"Έτοιμο", shipped:"Απεστάλη", selectProducts:"Προϊόντα", cart:"Σύνοψη", empty:"Άδειο", submit:"Υποβολή", submitted:"Υποβλήθηκε!", notes:"Σημειώσεις", back:"Πίσω", items:"Είδη", qty:"Ποσ.", error:"Λάθος", currency:"€", size:"Μέγεθος", color:"Χρώμα", pcs:"τεμ", search:"Αναζήτηση...", allCategories:"Όλα" },
-    nl: { welcome:"Stella Portaal", login:"Inloggen", dealerCode:"Code", password:"Wachtwoord", myOrders:"Bestellingen", newOrder:"Nieuw", logout:"Uitloggen", orderNo:"Nr.", date:"Datum", status:"Status", ready:"Gereed", total:"Totaal", details:"Details", noOrders:"Geen", pending:"Wachtend", production:"In Productie", readyStatus:"Gereed", shipped:"Verzonden", selectProducts:"Producten", cart:"Overzicht", empty:"Leeg", submit:"Verzenden", submitted:"Verzonden!", notes:"Notities", back:"Terug", items:"Artikelen", qty:"Aantal", error:"Ongeldig", currency:"€", size:"Maat", color:"Kleur", pcs:"st", search:"Zoeken...", allCategories:"Alles" },
-    ro: { welcome:"Portal Stella", login:"Autentificare", dealerCode:"Cod", password:"Parolă", myOrders:"Comenzi", newOrder:"Nouă", logout:"Ieșire", orderNo:"Nr.", date:"Data", status:"Status", ready:"Gata", total:"Total", details:"Detalii", noOrders:"Fără", pending:"Așteptare", production:"Producție", readyStatus:"Gata", shipped:"Expediat", selectProducts:"Produse", cart:"Sumar", empty:"Gol", submit:"Trimite", submitted:"Trimis!", notes:"Note", back:"Înapoi", items:"Articole", qty:"Cant.", error:"Invalid", currency:"€", size:"Mărime", color:"Culoare", pcs:"buc", search:"Căutare...", allCategories:"Toate" },
-    hu: { welcome:"Stella Portál", login:"Belépés", dealerCode:"Kód", password:"Jelszó", myOrders:"Rendelések", newOrder:"Új", logout:"Kilépés", orderNo:"Sz.", date:"Dátum", status:"Státusz", ready:"Kész", total:"Összesen", details:"Részletek", noOrders:"Nincs", pending:"Függőben", production:"Gyártásban", readyStatus:"Kész", shipped:"Szállítva", selectProducts:"Termékek", cart:"Összegzés", empty:"Üres", submit:"Küldés", submitted:"Elküldve!", notes:"Megjegyzés", back:"Vissza", items:"Tételek", qty:"Db", error:"Hibás", currency:"€", size:"Méret", color:"Szín", pcs:"db", search:"Keresés...", allCategories:"Összes" },
-    bg: { welcome:"Портал Stella", login:"Вход", dealerCode:"Код", password:"Парола", myOrders:"Поръчки", newOrder:"Нова", logout:"Изход", orderNo:"№", date:"Дата", status:"Статус", ready:"Готово", total:"Общо", details:"Детайли", noOrders:"Няма", pending:"Чакащи", production:"Производство", readyStatus:"Готово", shipped:"Изпратено", selectProducts:"Продукти", cart:"Резюме", empty:"Празно", submit:"Изпрати", submitted:"Изпратено!", notes:"Бележки", back:"Назад", items:"Артикули", qty:"Бр.", error:"Грешка", currency:"€", size:"Размер", color:"Цвят", pcs:"бр", search:"Търсене...", allCategories:"Всички" }
+    en: { welcome:"Stella Dealer Portal", login:"Login", dealerCode:"Dealer Code", password:"Password", myOrders:"My Orders", logout:"Logout", orderNo:"Order #", date:"Order Date", status:"Status", ready:"Ready Date", shipped:"Ship Date", total:"Total", progress:"Progress", details:"Details", noOrders:"No orders found", pending:"In Queue", production:"In Production", readyStatus:"Ready", shippedStatus:"Shipped", back:"Back", manager:"Manager", prepaid:"Prepaid", balance:"Balance", plan:"Plan", fact:"Actual", error:"Invalid credentials", daysInProd:"Days in production" },
+    de: { welcome:"Stella Händlerportal", login:"Anmelden", dealerCode:"Händlercode", password:"Passwort", myOrders:"Bestellungen", logout:"Abmelden", orderNo:"Best.Nr.", date:"Bestelldatum", status:"Status", ready:"Fertigstellung", shipped:"Versand", total:"Gesamt", progress:"Fortschritt", details:"Details", noOrders:"Keine Bestellungen", pending:"In Warteschlange", production:"In Produktion", readyStatus:"Fertig", shippedStatus:"Versendet", back:"Zurück", manager:"Manager", prepaid:"Vorauszahlung", balance:"Restbetrag", plan:"Plan", fact:"Ist", error:"Ungültige Daten", daysInProd:"Tage in Produktion" },
+    it: { welcome:"Portale Stella", login:"Accedi", dealerCode:"Codice", password:"Password", myOrders:"Ordini", logout:"Esci", orderNo:"Ordine", date:"Data ordine", status:"Stato", ready:"Data pronto", shipped:"Data spedizione", total:"Totale", progress:"Avanzamento", details:"Dettagli", noOrders:"Nessun ordine", pending:"In coda", production:"In produzione", readyStatus:"Pronto", shippedStatus:"Spedito", back:"Indietro", manager:"Manager", prepaid:"Prepagato", balance:"Saldo", plan:"Piano", fact:"Effettivo", error:"Credenziali errate", daysInProd:"Giorni in produzione" },
+    tr: { welcome:"Stella Bayi Portalı", login:"Giriş", dealerCode:"Bayi Kodu", password:"Şifre", myOrders:"Siparişlerim", logout:"Çıkış", orderNo:"Sipariş No", date:"Sipariş Tarihi", status:"Durum", ready:"Hazır Tarihi", shipped:"Sevk Tarihi", total:"Toplam", progress:"İlerleme", details:"Detay", noOrders:"Sipariş bulunamadı", pending:"Sırada", production:"Üretimde", readyStatus:"Hazır", shippedStatus:"Sevk Edildi", back:"Geri", manager:"Yönetici", prepaid:"Ön Ödeme", balance:"Bakiye", plan:"Plan", fact:"Gerçekleşen", error:"Geçersiz giriş", daysInProd:"Üretimde gün" },
+    el: { welcome:"Πύλη Stella", login:"Σύνδεση", dealerCode:"Κωδικός", password:"Κωδικός", myOrders:"Παραγγελίες", logout:"Έξοδος", orderNo:"Αρ. Παραγγελίας", date:"Ημ. Παραγγελίας", status:"Κατάσταση", ready:"Ημ. Ετοιμότητας", shipped:"Ημ. Αποστολής", total:"Σύνολο", progress:"Πρόοδος", details:"Λεπτομέρειες", noOrders:"Δεν βρέθηκαν", pending:"Σε αναμονή", production:"Σε παραγωγή", readyStatus:"Έτοιμο", shippedStatus:"Απεστάλη", back:"Πίσω", manager:"Διαχειριστής", prepaid:"Προπληρωμή", balance:"Υπόλοιπο", plan:"Πλάνο", fact:"Πραγματικό", error:"Λάθος", daysInProd:"Ημέρες παραγωγής" },
+    nl: { welcome:"Stella Portaal", login:"Inloggen", dealerCode:"Dealercode", password:"Wachtwoord", myOrders:"Bestellingen", logout:"Uitloggen", orderNo:"Bestelnr.", date:"Besteldatum", status:"Status", ready:"Gereed datum", shipped:"Verzenddatum", total:"Totaal", progress:"Voortgang", details:"Details", noOrders:"Geen bestellingen", pending:"In wachtrij", production:"In productie", readyStatus:"Gereed", shippedStatus:"Verzonden", back:"Terug", manager:"Manager", prepaid:"Vooruitbetaald", balance:"Saldo", plan:"Plan", fact:"Werkelijk", error:"Ongeldig", daysInProd:"Dagen in productie" },
+    hu: { welcome:"Stella Portál", login:"Belépés", dealerCode:"Kód", password:"Jelszó", myOrders:"Rendeléseim", logout:"Kilépés", orderNo:"Rendelés", date:"Dátum", status:"Státusz", ready:"Kész dátum", shipped:"Szállítás", total:"Összesen", progress:"Folyamat", details:"Részletek", noOrders:"Nincs rendelés", pending:"Várakozik", production:"Gyártásban", readyStatus:"Kész", shippedStatus:"Kiszállítva", back:"Vissza", manager:"Menedzser", prepaid:"Előleg", balance:"Egyenleg", plan:"Terv", fact:"Tényleges", error:"Hibás", daysInProd:"Napok gyártásban" },
+    ru: { welcome:"Портал дилеров Stella", login:"Вход", dealerCode:"Код дилера", password:"Пароль", myOrders:"Мои заказы", logout:"Выход", orderNo:"№ заказа", date:"Дата заказа", status:"Статус", ready:"Дата готовности", shipped:"Дата отгрузки", total:"Сумма", progress:"Прогресс", details:"Подробнее", noOrders:"Заказы не найдены", pending:"В очереди", production:"В производстве", readyStatus:"Готов", shippedStatus:"Отгружен", back:"Назад", manager:"Менеджер", prepaid:"Предоплата", balance:"Остаток", plan:"План", fact:"Факт", error:"Неверные данные", daysInProd:"Дней в производстве" },
+    es: { welcome:"Portal Stella", login:"Entrar", dealerCode:"Código", password:"Contraseña", myOrders:"Mis pedidos", logout:"Salir", orderNo:"Pedido", date:"Fecha", status:"Estado", ready:"Fecha listo", shipped:"Fecha envío", total:"Total", progress:"Progreso", details:"Detalles", noOrders:"Sin pedidos", pending:"En cola", production:"En producción", readyStatus:"Listo", shippedStatus:"Enviado", back:"Volver", manager:"Gerente", prepaid:"Prepago", balance:"Saldo", plan:"Plan", fact:"Real", error:"Inválido", daysInProd:"Días en producción" }
 };
 
-const FLAGS = { en:'🇺🇸', de:'🇩🇪', it:'🇮🇹', fr:'🇫🇷', tr:'🇹🇷', el:'🇬🇷', nl:'🇳🇱', ro:'🇷🇴', hu:'🇭🇺', bg:'🇧🇬' };
+const FLAGS = { en:'🇬🇧', de:'🇩🇪', it:'🇮🇹', tr:'🇹🇷', el:'🇬🇷', nl:'🇳🇱', hu:'🇭🇺', ru:'🇷🇺', es:'🇪🇸' };
 
 // ============================================
-// DATA
+// DATA & STATE
 // ============================================
-let DATA = { dealers: [], products: [], orders: [], orderItems: [], loaded: false, error: null };
-
-// ============================================
-// STATE
-// ============================================
-let S = { page: 'login', lang: 'en', user: null, cart: [], selOrder: null, submitted: false, category: 'all', search: '' };
+let DATA = { orders: [], dealers: [], loaded: false, error: null };
+let S = { page: 'login', lang: 'en', user: null, selOrder: null };
 
 const t = k => T[S.lang]?.[k] || T.en[k] || k;
-const fmt = n => '€' + parseFloat(n || 0).toLocaleString('de-DE', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+const fmt = n => '€' + parseFloat(n || 0).toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const fmtDate = d => {
+    if (!d) return '-';
+    if (typeof d === 'string' && d.includes('-')) return d.split('T')[0];
+    if (d instanceof Date) return d.toISOString().split('T')[0];
+    return d;
+};
 
 // ============================================
-// LOAD DATA FROM GOOGLE SHEETS
+// LOAD DATA
 // ============================================
 async function loadData() {
     const baseUrl = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values`;
     
     try {
-        const responses = await Promise.all([
-            fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.DEALERS)}?key=${CONFIG.API_KEY}`),
-            fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.PRODUCTS)}?key=${CONFIG.API_KEY}`),
-            fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.ORDERS)}?key=${CONFIG.API_KEY}`),
-            fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.ORDER_ITEMS)}?key=${CONFIG.API_KEY}`)
+        const [ordersRes, dealersRes] = await Promise.all([
+            fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.ORDERS)}?key=${CONFIG.API_KEY}`).then(r => r.json()),
+            fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.DEALERS)}?key=${CONFIG.API_KEY}`).then(r => r.json())
         ]);
-        
-        const [dealersRes, productsRes, ordersRes, itemsRes] = await Promise.all(responses.map(r => r.json()));
         
         function parse(data) {
             if (!data.values || data.values.length < 2) return [];
@@ -98,10 +94,8 @@ async function loadData() {
             });
         }
         
-        DATA.dealers = parse(dealersRes);
-        DATA.products = parse(productsRes);
         DATA.orders = parse(ordersRes);
-        DATA.orderItems = parse(itemsRes);
+        DATA.dealers = parse(dealersRes);
         DATA.loaded = true;
         
         console.log('✅ Data loaded:', DATA);
@@ -120,29 +114,30 @@ async function loadData() {
 function render() {
     const app = document.getElementById('app');
     
-    if (!DATA.loaded && !DATA.error) {
-        return; // Still loading
-    }
+    if (!DATA.loaded && !DATA.error) return;
     
     if (DATA.error) {
-        app.innerHTML = `
-            <div class="min-h-screen gradient-bg flex items-center justify-center p-4">
-                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
-                    <div class="text-6xl mb-4">❌</div>
-                    <h2 class="text-xl font-bold text-gray-800 mb-2">Connection Error</h2>
-                    <p class="text-gray-500 mb-4">${DATA.error}</p>
-                    <button onclick="location.reload()" class="bg-blue-600 text-white px-6 py-2 rounded-lg">Retry</button>
-                </div>
-            </div>`;
+        app.innerHTML = errorPage();
         return;
     }
     
     if (S.page === 'login') app.innerHTML = loginPage();
     else if (S.page === 'orders') app.innerHTML = layout(ordersPage());
-    else if (S.page === 'new') app.innerHTML = layout(newOrderPage());
     else if (S.page === 'detail') app.innerHTML = layout(detailPage());
     
     bind();
+}
+
+function errorPage() {
+    return `
+    <div class="min-h-screen gradient-bg flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
+            <div class="text-6xl mb-4">❌</div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Connection Error</h2>
+            <p class="text-gray-500 mb-4">${DATA.error}</p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white px-6 py-2 rounded-lg">Retry</button>
+        </div>
+    </div>`;
 }
 
 function loginPage() {
@@ -155,7 +150,7 @@ function loginPage() {
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-800 mb-2">STELLA</h1>
                 <p class="text-gray-500">${t('welcome')}</p>
-                <p class="text-green-500 text-sm mt-2">✓ Connected to Google Sheets (${DATA.dealers.length} dealers, ${DATA.products.length} products)</p>
+                <p class="text-green-500 text-sm mt-2">✓ Connected (${DATA.orders.length} orders)</p>
             </div>
             <form id="loginForm" class="space-y-4">
                 <div>
@@ -164,13 +159,13 @@ function loginPage() {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">${t('password')}</label>
-                    <input type="password" id="pass" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="••••••••" value="stella2024">
+                    <input type="password" id="pass" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500" value="stella2024">
                 </div>
                 <div id="err" class="hidden text-red-500 text-sm text-center"></div>
                 <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition">${t('login')}</button>
             </form>
             <div class="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-500">
-                <strong>Dealers:</strong> ${DATA.dealers.map(d => d.dealer_code).join(', ')}
+                <strong>Dealers:</strong> ${[...new Set(DATA.orders.map(o => o.dealer_code))].filter(Boolean).join(', ')}
             </div>
         </div>
     </div>`;
@@ -180,25 +175,19 @@ function layout(content) {
     return `
     <div class="min-h-screen bg-gray-50">
         <header class="gradient-bg text-white">
-            <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <h1 class="text-2xl font-bold">STELLA</h1>
                     <span class="text-blue-200">|</span>
                     <span class="text-blue-100">${S.user?.company_name || S.user?.dealer_code}</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    ${Object.keys(FLAGS).map(l=>`<button onclick="setLang('${l}')" class="w-7 h-7 rounded ${S.lang===l?'bg-white':'bg-blue-500/30 hover:bg-blue-500/50'} text-sm transition">${FLAGS[l]}</button>`).join('')}
+                    ${Object.keys(FLAGS).map(l=>`<button onclick="setLang('${l}')" class="w-7 h-7 rounded ${S.lang===l?'bg-white/20':'hover:bg-white/10'} text-sm transition">${FLAGS[l]}</button>`).join('')}
                     <button onclick="logout()" class="ml-3 text-blue-100 hover:text-white text-sm">${t('logout')}</button>
                 </div>
             </div>
-            <nav class="bg-blue-900/30">
-                <div class="max-w-7xl mx-auto px-4 flex gap-1">
-                    <button onclick="go('orders')" class="px-6 py-3 text-sm font-medium transition ${S.page==='orders'||S.page==='detail'?'bg-white text-blue-600':'text-blue-100 hover:bg-blue-500/30'}">${t('myOrders')}</button>
-                    <button onclick="go('new')" class="px-6 py-3 text-sm font-medium transition ${S.page==='new'?'bg-white text-blue-600':'text-blue-100 hover:bg-blue-500/30'}">${t('newOrder')}</button>
-                </div>
-            </nav>
         </header>
-        <main class="max-w-7xl mx-auto px-4 py-8">${content}</main>
+        <main class="max-w-6xl mx-auto px-4 py-8">${content}</main>
     </div>`;
 }
 
@@ -206,164 +195,168 @@ function ordersPage() {
     const orders = DATA.orders.filter(o => o.dealer_code === S.user?.dealer_code);
     
     if (!orders.length) {
-        return `<div class="bg-white rounded-xl p-12 text-center text-gray-500">${t('noOrders')}<br><button onclick="go('new')" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">${t('newOrder')}</button></div>`;
+        return `<div class="bg-white rounded-xl p-12 text-center text-gray-500">${t('noOrders')}</div>`;
     }
     
+    return `
+    <h2 class="text-xl font-semibold mb-6">${t('myOrders')} (${orders.length})</h2>
+    <div class="space-y-4">
+        ${orders.map(o => orderCard(o)).join('')}
+    </div>`;
+}
+
+function orderCard(o) {
     const statusCls = s => {
         s = (s||'').toLowerCase();
-        return s==='pending'?'status-pending':s==='production'?'status-production':s==='ready'?'status-ready':s==='shipped'?'status-shipped':'status-pending';
-    };
-    const statusTxt = s => {
-        s = (s||'').toLowerCase();
-        return s==='pending'?t('pending'):s==='production'?t('production'):s==='ready'?t('readyStatus'):s==='shipped'?t('shipped'):s;
+        if (s.includes('production') || s.includes('производ')) return 'status-production';
+        if (s.includes('ready') || s.includes('готов')) return 'status-ready';
+        if (s.includes('shipped') || s.includes('отгруж')) return 'status-shipped';
+        return 'status-pending';
     };
     
-    return `<h2 class="text-xl font-semibold mb-6">${t('myOrders')}</h2>
-    <div class="space-y-4">
-        ${orders.map(o=>`
-        <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition">
-            <div class="flex justify-between items-center flex-wrap gap-4">
-                <div class="flex gap-6 flex-wrap">
-                    <div><p class="text-sm text-gray-500">${t('orderNo')}</p><p class="font-semibold">${o.order_id}</p></div>
-                    <div><p class="text-sm text-gray-500">${t('date')}</p><p>${o.order_date}</p></div>
-                    <div><p class="text-sm text-gray-500">${t('status')}</p><span class="px-3 py-1 rounded-full text-sm font-medium ${statusCls(o.status)}">${statusTxt(o.status)}</span></div>
-                    <div><p class="text-sm text-gray-500">${t('ready')}</p><p class="font-medium">${o.ready_date || '-'}</p></div>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="text-right"><p class="text-sm text-gray-500">${t('total')}</p><p class="font-semibold">${fmt(o.total_eur)}</p></div>
-                    <button onclick="viewOrder('${o.order_id}')" class="bg-gray-100 px-4 py-2 rounded-lg text-sm hover:bg-gray-200 transition">${t('details')}</button>
-                </div>
+    const statusTxt = s => {
+        s = (s||'').toLowerCase();
+        if (s.includes('production') || s.includes('производ')) return t('production');
+        if (s.includes('ready') || s.includes('готов')) return t('readyStatus');
+        if (s.includes('shipped') || s.includes('отгруж')) return t('shippedStatus');
+        return t('pending');
+    };
+    
+    // Parse progress percentage
+    let progress = 0;
+    if (o.progress__) {
+        const match = o.progress__.toString().replace(',', '.').match(/[\d.]+/);
+        if (match) progress = parseFloat(match[0]);
+    }
+    
+    return `
+    <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition cursor-pointer" onclick="viewOrder('${o.order_id}')">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="font-semibold text-lg">${o.order_id}</p>
+                <p class="text-sm text-gray-500">${fmtDate(o.order_date)}</p>
             </div>
-        </div>`).join('')}
+            <span class="px-3 py-1 rounded-full text-sm font-medium ${statusCls(o.status)}">${statusTxt(o.status)}</span>
+        </div>
+        
+        <div class="mb-4">
+            <div class="flex justify-between text-sm mb-1">
+                <span class="text-gray-500">${t('progress')}</span>
+                <span class="font-medium">${progress}%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: ${progress}%"></div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-4 text-sm">
+            <div>
+                <p class="text-gray-500">${t('ready')} (${t('plan')})</p>
+                <p class="font-medium">${fmtDate(o.ready_date_plan)}</p>
+            </div>
+            <div>
+                <p class="text-gray-500">${t('shipped')} (${t('plan')})</p>
+                <p class="font-medium">${fmtDate(o.ship_date_plan)}</p>
+            </div>
+            <div class="text-right">
+                <p class="text-gray-500">${t('total')}</p>
+                <p class="font-semibold text-blue-600">${fmt(o.total_eur)}</p>
+            </div>
+        </div>
     </div>`;
 }
 
 function detailPage() {
     const o = DATA.orders.find(x => x.order_id === S.selOrder);
-    if (!o) { go('orders'); return ''; }
-    
-    const items = DATA.orderItems.filter(i => i.order_id === S.selOrder);
+    if (!o) { S.page = 'orders'; render(); return ''; }
     
     const statusCls = s => {
         s = (s||'').toLowerCase();
-        return s==='pending'?'status-pending':s==='production'?'status-production':s==='ready'?'status-ready':s==='shipped'?'status-shipped':'status-pending';
+        if (s.includes('production') || s.includes('производ')) return 'status-production';
+        if (s.includes('ready') || s.includes('готов')) return 'status-ready';
+        if (s.includes('shipped') || s.includes('отгруж')) return 'status-shipped';
+        return 'status-pending';
     };
+    
     const statusTxt = s => {
         s = (s||'').toLowerCase();
-        return s==='pending'?t('pending'):s==='production'?t('production'):s==='ready'?t('readyStatus'):s==='shipped'?t('shipped'):s;
+        if (s.includes('production') || s.includes('производ')) return t('production');
+        if (s.includes('ready') || s.includes('готов')) return t('readyStatus');
+        if (s.includes('shipped') || s.includes('отгруж')) return t('shippedStatus');
+        return t('pending');
     };
     
+    let progress = 0;
+    if (o.progress__) {
+        const match = o.progress__.toString().replace(',', '.').match(/[\d.]+/);
+        if (match) progress = parseFloat(match[0]);
+    }
+    
     return `
-    <button onclick="go('orders')" class="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6">← ${t('back')}</button>
+    <button onclick="S.page='orders';render()" class="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6">← ${t('back')}</button>
+    
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h2 class="text-2xl font-bold">${o.order_id}</h2>
+                <p class="text-gray-500">${o.dealer_name}</p>
+            </div>
+            <span class="px-4 py-2 rounded-full text-sm font-medium ${statusCls(o.status)}">${statusTxt(o.status)}</span>
+        </div>
+        
+        <div class="mb-6">
+            <div class="flex justify-between text-sm mb-2">
+                <span class="text-gray-500">${t('progress')}</span>
+                <span class="font-bold text-lg">${progress}%</span>
+            </div>
+            <div class="progress-bar h-3">
+                <div class="progress-fill" style="width: ${progress}%"></div>
+            </div>
+            ${o.days_in_production ? `<p class="text-sm text-gray-500 mt-2">${t('daysInProd')}: ${o.days_in_production}</p>` : ''}
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500">${t('date')}</p>
+                <p class="font-medium">${fmtDate(o.order_date)}</p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500">${t('ready')} (${t('plan')})</p>
+                <p class="font-medium">${fmtDate(o.ready_date_plan)}</p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500">${t('ready')} (${t('fact')})</p>
+                <p class="font-medium ${o.ready_date_fact ? 'text-green-600' : ''}">${fmtDate(o.ready_date_fact)}</p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="text-sm text-gray-500">${t('shipped')} (${t('plan')})</p>
+                <p class="font-medium">${fmtDate(o.ship_date_plan)}</p>
+            </div>
+        </div>
+    </div>
+    
     <div class="bg-white rounded-xl shadow-sm p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-semibold">${o.order_id}</h2>
-            <span class="px-4 py-2 rounded-full font-medium ${statusCls(o.status)}">${statusTxt(o.status)}</span>
-        </div>
-        <div class="grid grid-cols-3 gap-6 mb-6 p-4 bg-gray-50 rounded-lg">
-            <div><p class="text-sm text-gray-500">${t('date')}</p><p class="font-medium">${o.order_date}</p></div>
-            <div><p class="text-sm text-gray-500">${t('ready')}</p><p class="font-medium text-blue-600">${o.ready_date || '-'}</p></div>
-            <div><p class="text-sm text-gray-500">${t('total')}</p><p class="font-medium">${fmt(o.total_eur)}</p></div>
-        </div>
-        <h3 class="font-medium mb-4">${t('items')}</h3>
-        <div class="overflow-x-auto">
-            <table class="w-full border rounded-lg overflow-hidden">
-                <thead class="bg-gray-50"><tr>
-                    <th class="px-4 py-3 text-left text-sm font-medium">${t('items')}</th>
-                    <th class="px-4 py-3 text-sm font-medium">${t('color')}</th>
-                    <th class="px-4 py-3 text-sm font-medium">${t('size')}</th>
-                    <th class="px-4 py-3 text-sm font-medium">${t('qty')}</th>
-                    <th class="px-4 py-3 text-right text-sm font-medium">${t('total')}</th>
-                </tr></thead>
-                <tbody>${items.map(i=>`<tr class="border-t">
-                    <td class="px-4 py-3 font-medium">${i.product_name}</td>
-                    <td class="px-4 py-3 text-center text-gray-600">${i.color_decor}</td>
-                    <td class="px-4 py-3 text-center text-gray-500 text-sm">${i.size}</td>
-                    <td class="px-4 py-3 text-center">${i.quantity}</td>
-                    <td class="px-4 py-3 text-right font-medium">${fmt(i.total)}</td>
-                </tr>`).join('')}</tbody>
-            </table>
-        </div>
-    </div>`;
-}
-
-function newOrderPage() {
-    if (S.submitted) {
-        return `<div class="bg-white rounded-xl p-12 text-center"><div class="text-green-500 text-5xl mb-4">✓</div><h3 class="text-xl font-semibold">${t('submitted')}</h3><button onclick="resetOrder()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">${t('newOrder')}</button></div>`;
-    }
-    
-    const cartTotal = S.cart.reduce((s, i) => s + i.q * i.pr, 0);
-    const categories = ['all', ...new Set(DATA.products.map(p => p.category).filter(Boolean))];
-    
-    let filtered = DATA.products.filter(p => p.status === 'Active');
-    if (S.category !== 'all') filtered = filtered.filter(p => p.category === S.category);
-    if (S.search) {
-        const q = S.search.toLowerCase();
-        filtered = filtered.filter(p => 
-            (p.product_name || '').toLowerCase().includes(q) || 
-            (p.color_decor || '').toLowerCase().includes(q) ||
-            (p.sku || '').toLowerCase().includes(q)
-        );
-    }
-    
-    return `
-    <div class="grid grid-cols-4 gap-6">
-        <div class="col-span-3 space-y-4">
-            <div class="flex gap-4 items-center">
-                <h2 class="text-xl font-semibold">${t('selectProducts')}</h2>
-                <input type="text" id="searchInput" placeholder="${t('search')}" value="${S.search}" 
-                    class="flex-1 max-w-md px-4 py-2 border rounded-lg" onkeyup="searchProducts(this.value)">
+        <h3 class="font-semibold mb-4">💰 ${t('total')}</h3>
+        <div class="grid grid-cols-3 gap-6">
+            <div class="p-4 bg-blue-50 rounded-lg">
+                <p class="text-sm text-gray-500">${t('total')}</p>
+                <p class="text-xl font-bold text-blue-600">${fmt(o.total_eur)}</p>
             </div>
-            
-            <div class="flex flex-wrap gap-2">
-                ${categories.map(c=>`<button onclick="setCat('${c}')" class="px-4 py-2 rounded-lg text-sm font-medium transition ${S.category===c ? 'cat-active' : 'bg-white hover:bg-gray-100'}">${c === 'all' ? t('allCategories') : c}</button>`).join('')}
+            <div class="p-4 bg-green-50 rounded-lg">
+                <p class="text-sm text-gray-500">${t('prepaid')}</p>
+                <p class="text-xl font-bold text-green-600">${fmt(o.prepaid_eur)}</p>
             </div>
-            
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                ${filtered.length === 0 ? `<p class="text-gray-500 text-center py-8">No products found</p>` : `
-                <div class="grid gap-3">
-                    ${filtered.map(p=>`
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                        <div class="flex-1">
-                            <p class="font-medium text-gray-800">${p.product_name}</p>
-                            <p class="text-sm text-gray-500">${p.color_decor} • ${p.size__mm_} • ${p.pack_quantity} ${p.unit}</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-gray-700 font-medium">${fmt(p.price_eur)}</span>
-                            <input type="number" id="q-${p.sku}" min="0" value="0" class="w-20 px-3 py-2 border rounded-lg text-center">
-                            <button onclick="addCart('${p.sku}')" class="bg-blue-600 text-white w-10 h-10 rounded-lg hover:bg-blue-700 text-xl">+</button>
-                        </div>
-                    </div>`).join('')}
-                </div>`}
+            <div class="p-4 bg-orange-50 rounded-lg">
+                <p class="text-sm text-gray-500">${t('balance')}</p>
+                <p class="text-xl font-bold text-orange-600">${fmt(o.balance_eur)}</p>
             </div>
         </div>
         
-        <div>
-            <h2 class="text-xl font-semibold mb-4">${t('cart')}</h2>
-            <div class="bg-white rounded-xl shadow-sm p-4 sticky top-6">
-                ${S.cart.length===0 ? `<p class="text-gray-500 text-center py-8">${t('empty')}</p>` : `
-                <div class="space-y-3 mb-4 max-h-96 overflow-y-auto">
-                    ${S.cart.map((c,i)=>`
-                    <div class="p-3 bg-gray-50 rounded-lg">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1 pr-2">
-                                <p class="font-medium text-sm">${c.name}</p>
-                                <p class="text-xs text-gray-500">${c.color}</p>
-                                <p class="text-xs text-gray-400">${c.q} × ${fmt(c.pr)}</p>
-                            </div>
-                            <button onclick="rmCart(${i})" class="text-red-500 hover:text-red-700 text-lg">✕</button>
-                        </div>
-                        <div class="text-right font-medium mt-1">${fmt(c.q*c.pr)}</div>
-                    </div>`).join('')}
-                </div>
-                <div class="border-t pt-4 mb-4 flex justify-between items-center">
-                    <span class="font-medium">${t('total')}</span>
-                    <span class="text-xl font-bold text-blue-600">${fmt(cartTotal)}</span>
-                </div>
-                <button onclick="submitOrder()" class="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700">${t('submit')}</button>
-                `}
-            </div>
-        </div>
+        ${o.manager ? `
+        <div class="mt-6 pt-6 border-t">
+            <p class="text-sm text-gray-500">${t('manager')}</p>
+            <p class="font-medium">${o.manager}</p>
+        </div>` : ''}
     </div>`;
 }
 
@@ -371,34 +364,8 @@ function newOrderPage() {
 // ACTIONS
 // ============================================
 function setLang(l) { S.lang = l; render(); }
-function go(p) { S.page = p; S.submitted = false; S.category = 'all'; S.search = ''; render(); }
-function logout() { S = { page: 'login', lang: S.lang, user: null, cart: [], selOrder: null, submitted: false, category: 'all', search: '' }; render(); }
+function logout() { S = { page: 'login', lang: S.lang, user: null, selOrder: null }; render(); }
 function viewOrder(id) { S.selOrder = id; S.page = 'detail'; render(); }
-function setCat(c) { S.category = c; render(); }
-function searchProducts(q) { S.search = q; render(); }
-
-function addCart(sku) {
-    const p = DATA.products.find(x => x.sku === sku);
-    const inp = document.getElementById('q-' + sku);
-    const q = parseInt(inp.value) || 0;
-    if (q > 0 && p) {
-        const ex = S.cart.findIndex(c => c.sku === sku);
-        if (ex >= 0) S.cart[ex].q += q;
-        else S.cart.push({ sku, name: p.product_name, color: p.color_decor, size: p.size__mm_, pr: parseFloat(p.price_eur) || 0, q });
-        inp.value = 0;
-        render();
-    }
-}
-
-function rmCart(i) { S.cart.splice(i, 1); render(); }
-function submitOrder() { 
-    console.log('📦 Order submitted:', { dealer: S.user, items: S.cart, total: S.cart.reduce((s,i)=>s+i.q*i.pr,0) });
-    alert('Order submitted! Check console (F12) for details.\n\nTo save orders to Google Sheets, you need a backend server.');
-    S.submitted = true; 
-    S.cart = []; 
-    render(); 
-}
-function resetOrder() { S.submitted = false; render(); }
 
 function bind() {
     const form = document.getElementById('loginForm');
@@ -408,24 +375,24 @@ function bind() {
             const code = document.getElementById('code').value.toUpperCase().trim();
             const pass = document.getElementById('pass').value;
             
+            // Check if dealer exists in orders
+            const dealerOrders = DATA.orders.filter(o => o.dealer_code === code);
             const dealer = DATA.dealers.find(d => d.dealer_code === code);
             
-            if (dealer && pass === 'stella2024') {
-                S.user = dealer;
-                S.lang = dealer.language || 'en';
+            if ((dealerOrders.length > 0 || dealer) && pass === 'stella2024') {
+                S.user = dealer || { dealer_code: code, company_name: dealerOrders[0]?.dealer_name || code };
+                S.lang = dealer?.language || 'en';
                 S.page = 'orders';
                 render();
             } else {
-                document.getElementById('err').textContent = t('error') + (dealer ? '' : ' - Dealer not found');
+                document.getElementById('err').textContent = t('error');
                 document.getElementById('err').classList.remove('hidden');
             }
         };
     }
 }
 
-// ============================================
-// START
-// ============================================
+// Start
 loadData();
     </script>
 </body>
