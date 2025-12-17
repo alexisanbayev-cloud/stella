@@ -17,6 +17,9 @@
         .item-shipped { background: #d1fae5; color: #065f46; }
         .progress-bar { background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden; }
         .progress-fill { background: linear-gradient(90deg, #3b82f6, #10b981); height: 100%; transition: width 0.3s; }
+        .tab-active { border-bottom: 3px solid #3b82f6; color: #1e40af; font-weight: 600; }
+        .tab-inactive { color: #6b7280; }
+        .tab-inactive:hover { color: #374151; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -34,25 +37,25 @@
 const CONFIG = {
     SPREADSHEET_ID: '1kQcSiTcmPu1dfbBH9wVEOeYOpgSXlfzbeur8u32373k',
     API_KEY: 'AIzaSyBaJW2t64e9TI3_Xw8-fgo9iB-o37WrBDM',
-    SHEETS: { ORDERS: 'Orders', ORDER_ITEMS: 'Order Items', DEALERS: 'Dealers' }
+    SHEETS: { ORDERS: 'Orders', ORDER_ITEMS: 'Order Items', DEALERS: 'Dealers', SHIPMENTS: 'Shipments' }
 };
 
 const T = {
-    en: { welcome:"Stella Dealer Portal", login:"Login", dealerCode:"Dealer Code", password:"Password", myOrders:"My Orders", logout:"Logout", orderNo:"Order #", date:"Order Date", status:"Status", ready:"Ready Date", shipped:"Ship Date", total:"Total", progress:"Progress", details:"Details", noOrders:"No orders found", pending:"In Queue", production:"In Production", readyStatus:"Ready", shippedStatus:"Shipped", back:"Back", manager:"Manager", prepaid:"Prepaid", balance:"Balance", plan:"Plan", fact:"Actual", error:"Invalid credentials", daysInProd:"Days", items:"Order Items", product:"Product", qty:"Qty", itemStatus:"Status", reserved:"Reserved", toProduce:"To Produce" },
-    de: { welcome:"Stella Händlerportal", login:"Anmelden", dealerCode:"Händlercode", password:"Passwort", myOrders:"Bestellungen", logout:"Abmelden", orderNo:"Best.Nr.", date:"Bestelldatum", status:"Status", ready:"Fertigstellung", shipped:"Versand", total:"Gesamt", progress:"Fortschritt", details:"Details", noOrders:"Keine Bestellungen", pending:"In Warteschlange", production:"In Produktion", readyStatus:"Fertig", shippedStatus:"Versendet", back:"Zurück", manager:"Manager", prepaid:"Vorauszahlung", balance:"Restbetrag", plan:"Plan", fact:"Ist", error:"Ungültige Daten", daysInProd:"Tage", items:"Bestellpositionen", product:"Produkt", qty:"Menge", itemStatus:"Status", reserved:"Reserviert", toProduce:"Zu produzieren" },
-    it: { welcome:"Portale Stella", login:"Accedi", dealerCode:"Codice", password:"Password", myOrders:"Ordini", logout:"Esci", orderNo:"Ordine", date:"Data", status:"Stato", ready:"Data pronto", shipped:"Spedizione", total:"Totale", progress:"Avanzamento", details:"Dettagli", noOrders:"Nessun ordine", pending:"In coda", production:"In produzione", readyStatus:"Pronto", shippedStatus:"Spedito", back:"Indietro", manager:"Manager", prepaid:"Prepagato", balance:"Saldo", plan:"Piano", fact:"Effettivo", error:"Credenziali errate", daysInProd:"Giorni", items:"Articoli", product:"Prodotto", qty:"Qtà", itemStatus:"Stato", reserved:"Riservato", toProduce:"Da produrre" },
-    tr: { welcome:"Stella Bayi Portalı", login:"Giriş", dealerCode:"Bayi Kodu", password:"Şifre", myOrders:"Siparişlerim", logout:"Çıkış", orderNo:"Sipariş No", date:"Tarih", status:"Durum", ready:"Hazır Tarihi", shipped:"Sevk Tarihi", total:"Toplam", progress:"İlerleme", details:"Detay", noOrders:"Sipariş yok", pending:"Sırada", production:"Üretimde", readyStatus:"Hazır", shippedStatus:"Sevk Edildi", back:"Geri", manager:"Yönetici", prepaid:"Ön Ödeme", balance:"Bakiye", plan:"Plan", fact:"Gerçekleşen", error:"Geçersiz giriş", daysInProd:"Gün", items:"Sipariş Kalemleri", product:"Ürün", qty:"Adet", itemStatus:"Durum", reserved:"Rezerve", toProduce:"Üretilecek" },
-    el: { welcome:"Πύλη Stella", login:"Σύνδεση", dealerCode:"Κωδικός", password:"Κωδικός", myOrders:"Παραγγελίες", logout:"Έξοδος", orderNo:"Αρ.", date:"Ημ/νία", status:"Κατάσταση", ready:"Ετοιμότητα", shipped:"Αποστολή", total:"Σύνολο", progress:"Πρόοδος", details:"Λεπτομέρειες", noOrders:"Δεν βρέθηκαν", pending:"Σε αναμονή", production:"Σε παραγωγή", readyStatus:"Έτοιμο", shippedStatus:"Απεστάλη", back:"Πίσω", manager:"Διαχειριστής", prepaid:"Προπληρωμή", balance:"Υπόλοιπο", plan:"Πλάνο", fact:"Πραγματικό", error:"Λάθος", daysInProd:"Ημέρες", items:"Προϊόντα", product:"Προϊόν", qty:"Ποσ.", itemStatus:"Κατάσταση", reserved:"Δεσμευμένο", toProduce:"Προς παραγωγή" },
-    nl: { welcome:"Stella Portaal", login:"Inloggen", dealerCode:"Code", password:"Wachtwoord", myOrders:"Bestellingen", logout:"Uitloggen", orderNo:"Nr.", date:"Datum", status:"Status", ready:"Gereed", shipped:"Verzending", total:"Totaal", progress:"Voortgang", details:"Details", noOrders:"Geen bestellingen", pending:"In wachtrij", production:"In productie", readyStatus:"Gereed", shippedStatus:"Verzonden", back:"Terug", manager:"Manager", prepaid:"Vooruitbetaald", balance:"Saldo", plan:"Plan", fact:"Werkelijk", error:"Ongeldig", daysInProd:"Dagen", items:"Artikelen", product:"Product", qty:"Aantal", itemStatus:"Status", reserved:"Gereserveerd", toProduce:"Te produceren" },
-    hu: { welcome:"Stella Portál", login:"Belépés", dealerCode:"Kód", password:"Jelszó", myOrders:"Rendeléseim", logout:"Kilépés", orderNo:"Szám", date:"Dátum", status:"Státusz", ready:"Kész", shipped:"Szállítás", total:"Összesen", progress:"Folyamat", details:"Részletek", noOrders:"Nincs rendelés", pending:"Várakozik", production:"Gyártásban", readyStatus:"Kész", shippedStatus:"Kiszállítva", back:"Vissza", manager:"Menedzser", prepaid:"Előleg", balance:"Egyenleg", plan:"Terv", fact:"Tényleges", error:"Hibás", daysInProd:"Nap", items:"Tételek", product:"Termék", qty:"Db", itemStatus:"Státusz", reserved:"Foglalt", toProduce:"Gyártandó" },
-    ru: { welcome:"Портал дилеров Stella", login:"Вход", dealerCode:"Код дилера", password:"Пароль", myOrders:"Мои заказы", logout:"Выход", orderNo:"№ заказа", date:"Дата", status:"Статус", ready:"Готовность", shipped:"Отгрузка", total:"Сумма", progress:"Прогресс", details:"Подробнее", noOrders:"Заказы не найдены", pending:"В очереди", production:"В производстве", readyStatus:"Готов", shippedStatus:"Отгружен", back:"Назад", manager:"Менеджер", prepaid:"Предоплата", balance:"Остаток", plan:"План", fact:"Факт", error:"Неверные данные", daysInProd:"Дней", items:"Состав заказа", product:"Товар", qty:"Кол-во", itemStatus:"Статус", reserved:"В резерве", toProduce:"К производству" },
-    es: { welcome:"Portal Stella", login:"Entrar", dealerCode:"Código", password:"Contraseña", myOrders:"Mis pedidos", logout:"Salir", orderNo:"Pedido", date:"Fecha", status:"Estado", ready:"Fecha listo", shipped:"Envío", total:"Total", progress:"Progreso", details:"Detalles", noOrders:"Sin pedidos", pending:"En cola", production:"En producción", readyStatus:"Listo", shippedStatus:"Enviado", back:"Volver", manager:"Gerente", prepaid:"Prepago", balance:"Saldo", plan:"Plan", fact:"Real", error:"Inválido", daysInProd:"Días", items:"Artículos", product:"Producto", qty:"Cant.", itemStatus:"Estado", reserved:"Reservado", toProduce:"A producir" }
+    en: { welcome:"Stella Dealer Portal", login:"Login", dealerCode:"Dealer Code", password:"Password", myOrders:"My Orders", logout:"Logout", orderNo:"Order #", date:"Order Date", status:"Status", ready:"Ready Date", shipped:"Ship Date", total:"Total", progress:"Progress", details:"Details", noOrders:"No orders found", pending:"In Queue", production:"In Production", readyStatus:"Ready", shippedStatus:"Shipped", back:"Back", manager:"Manager", prepaid:"Prepaid", balance:"Balance", plan:"Plan", fact:"Actual", error:"Invalid credentials", daysInProd:"Days", items:"Order Items", product:"Product", qty:"Qty", itemStatus:"Status", reserved:"Reserved", toProduce:"To Produce", shipments:"Shipment History", noShipments:"No shipments found", totalShipped:"Total Shipped" },
+    de: { welcome:"Stella Händlerportal", login:"Anmelden", dealerCode:"Händlercode", password:"Passwort", myOrders:"Bestellungen", logout:"Abmelden", orderNo:"Best.Nr.", date:"Bestelldatum", status:"Status", ready:"Fertigstellung", shipped:"Versand", total:"Gesamt", progress:"Fortschritt", details:"Details", noOrders:"Keine Bestellungen", pending:"In Warteschlange", production:"In Produktion", readyStatus:"Fertig", shippedStatus:"Versendet", back:"Zurück", manager:"Manager", prepaid:"Vorauszahlung", balance:"Restbetrag", plan:"Plan", fact:"Ist", error:"Ungültige Daten", daysInProd:"Tage", items:"Bestellpositionen", product:"Produkt", qty:"Menge", itemStatus:"Status", reserved:"Reserviert", toProduce:"Zu produzieren", shipments:"Lieferverlauf", noShipments:"Keine Lieferungen", totalShipped:"Gesamt geliefert" },
+    it: { welcome:"Portale Stella", login:"Accedi", dealerCode:"Codice", password:"Password", myOrders:"Ordini", logout:"Esci", orderNo:"Ordine", date:"Data", status:"Stato", ready:"Data pronto", shipped:"Spedizione", total:"Totale", progress:"Avanzamento", details:"Dettagli", noOrders:"Nessun ordine", pending:"In coda", production:"In produzione", readyStatus:"Pronto", shippedStatus:"Spedito", back:"Indietro", manager:"Manager", prepaid:"Prepagato", balance:"Saldo", plan:"Piano", fact:"Effettivo", error:"Credenziali errate", daysInProd:"Giorni", items:"Articoli", product:"Prodotto", qty:"Qtà", itemStatus:"Stato", reserved:"Riservato", toProduce:"Da produrre", shipments:"Storico Spedizioni", noShipments:"Nessuna spedizione", totalShipped:"Totale spedito" },
+    tr: { welcome:"Stella Bayi Portalı", login:"Giriş", dealerCode:"Bayi Kodu", password:"Şifre", myOrders:"Siparişlerim", logout:"Çıkış", orderNo:"Sipariş No", date:"Tarih", status:"Durum", ready:"Hazır Tarihi", shipped:"Sevk Tarihi", total:"Toplam", progress:"İlerleme", details:"Detay", noOrders:"Sipariş yok", pending:"Sırada", production:"Üretimde", readyStatus:"Hazır", shippedStatus:"Sevk Edildi", back:"Geri", manager:"Yönetici", prepaid:"Ön Ödeme", balance:"Bakiye", plan:"Plan", fact:"Gerçekleşen", error:"Geçersiz giriş", daysInProd:"Gün", items:"Sipariş Kalemleri", product:"Ürün", qty:"Adet", itemStatus:"Durum", reserved:"Rezerve", toProduce:"Üretilecek", shipments:"Sevkiyat Geçmişi", noShipments:"Sevkiyat yok", totalShipped:"Toplam sevk" },
+    el: { welcome:"Πύλη Stella", login:"Σύνδεση", dealerCode:"Κωδικός", password:"Κωδικός", myOrders:"Παραγγελίες", logout:"Έξοδος", orderNo:"Αρ.", date:"Ημ/νία", status:"Κατάσταση", ready:"Ετοιμότητα", shipped:"Αποστολή", total:"Σύνολο", progress:"Πρόοδος", details:"Λεπτομέρειες", noOrders:"Δεν βρέθηκαν", pending:"Σε αναμονή", production:"Σε παραγωγή", readyStatus:"Έτοιμο", shippedStatus:"Απεστάλη", back:"Πίσω", manager:"Διαχειριστής", prepaid:"Προπληρωμή", balance:"Υπόλοιπο", plan:"Πλάνο", fact:"Πραγματικό", error:"Λάθος", daysInProd:"Ημέρες", items:"Προϊόντα", product:"Προϊόν", qty:"Ποσ.", itemStatus:"Κατάσταση", reserved:"Δεσμευμένο", toProduce:"Προς παραγωγή", shipments:"Ιστορικό Αποστολών", noShipments:"Δεν βρέθηκαν", totalShipped:"Σύνολο αποστολών" },
+    nl: { welcome:"Stella Portaal", login:"Inloggen", dealerCode:"Code", password:"Wachtwoord", myOrders:"Bestellingen", logout:"Uitloggen", orderNo:"Nr.", date:"Datum", status:"Status", ready:"Gereed", shipped:"Verzending", total:"Totaal", progress:"Voortgang", details:"Details", noOrders:"Geen bestellingen", pending:"In wachtrij", production:"In productie", readyStatus:"Gereed", shippedStatus:"Verzonden", back:"Terug", manager:"Manager", prepaid:"Vooruitbetaald", balance:"Saldo", plan:"Plan", fact:"Werkelijk", error:"Ongeldig", daysInProd:"Dagen", items:"Artikelen", product:"Product", qty:"Aantal", itemStatus:"Status", reserved:"Gereserveerd", toProduce:"Te produceren", shipments:"Verzendgeschiedenis", noShipments:"Geen verzendingen", totalShipped:"Totaal verzonden" },
+    hu: { welcome:"Stella Portál", login:"Belépés", dealerCode:"Kód", password:"Jelszó", myOrders:"Rendeléseim", logout:"Kilépés", orderNo:"Szám", date:"Dátum", status:"Státusz", ready:"Kész", shipped:"Szállítás", total:"Összesen", progress:"Folyamat", details:"Részletek", noOrders:"Nincs rendelés", pending:"Várakozik", production:"Gyártásban", readyStatus:"Kész", shippedStatus:"Kiszállítva", back:"Vissza", manager:"Menedzser", prepaid:"Előleg", balance:"Egyenleg", plan:"Terv", fact:"Tényleges", error:"Hibás", daysInProd:"Nap", items:"Tételek", product:"Termék", qty:"Db", itemStatus:"Státusz", reserved:"Foglalt", toProduce:"Gyártandó", shipments:"Szállítási előzmények", noShipments:"Nincs szállítás", totalShipped:"Összes szállítva" },
+    ru: { welcome:"Портал дилеров Stella", login:"Вход", dealerCode:"Код дилера", password:"Пароль", myOrders:"Мои заказы", logout:"Выход", orderNo:"№ заказа", date:"Дата", status:"Статус", ready:"Готовность", shipped:"Отгрузка", total:"Сумма", progress:"Прогресс", details:"Подробнее", noOrders:"Заказы не найдены", pending:"В очереди", production:"В производстве", readyStatus:"Готов", shippedStatus:"Отгружен", back:"Назад", manager:"Менеджер", prepaid:"Предоплата", balance:"Остаток", plan:"План", fact:"Факт", error:"Неверные данные", daysInProd:"Дней", items:"Состав заказа", product:"Товар", qty:"Кол-во", itemStatus:"Статус", reserved:"В резерве", toProduce:"К производству", shipments:"История отгрузок", noShipments:"Отгрузок нет", totalShipped:"Всего отгружено" },
+    es: { welcome:"Portal Stella", login:"Entrar", dealerCode:"Código", password:"Contraseña", myOrders:"Mis pedidos", logout:"Salir", orderNo:"Pedido", date:"Fecha", status:"Estado", ready:"Fecha listo", shipped:"Envío", total:"Total", progress:"Progreso", details:"Detalles", noOrders:"Sin pedidos", pending:"En cola", production:"En producción", readyStatus:"Listo", shippedStatus:"Enviado", back:"Volver", manager:"Gerente", prepaid:"Prepago", balance:"Saldo", plan:"Plan", fact:"Real", error:"Inválido", daysInProd:"Días", items:"Artículos", product:"Producto", qty:"Cant.", itemStatus:"Estado", reserved:"Reservado", toProduce:"A producir", shipments:"Historial de envíos", noShipments:"Sin envíos", totalShipped:"Total enviado" }
 };
 
 const FLAGS = { en:'🇬🇧', de:'🇩🇪', it:'🇮🇹', tr:'🇹🇷', el:'🇬🇷', nl:'🇳🇱', hu:'🇭🇺', ru:'🇷🇺', es:'🇪🇸' };
 
-let DATA = { orders: [], orderItems: [], dealers: [], loaded: false, error: null };
-let S = { page: 'login', lang: 'en', user: null, selOrder: null };
+let DATA = { orders: [], orderItems: [], dealers: [], shipments: [], loaded: false, error: null };
+let S = { page: 'login', lang: 'en', user: null, selOrder: null, tab: 'orders' };
 
 const t = k => T[S.lang]?.[k] || T.en[k] || k;
 const fmt = n => '€' + parseFloat(n || 0).toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -61,6 +64,11 @@ const fmtDate = d => {
     if (typeof d === 'string') {
         if (d.includes('T')) return d.split('T')[0];
         if (d.includes('-')) return d;
+        // Handle dd.mm.yyyy format
+        if (d.includes('.')) {
+            const parts = d.split('.');
+            if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
     }
     return d;
 };
@@ -69,10 +77,11 @@ async function loadData() {
     const baseUrl = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values`;
     
     try {
-        const [ordersRes, itemsRes, dealersRes] = await Promise.all([
+        const [ordersRes, itemsRes, dealersRes, shipmentsRes] = await Promise.all([
             fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.ORDERS)}?key=${CONFIG.API_KEY}`).then(r => r.json()),
             fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.ORDER_ITEMS)}?key=${CONFIG.API_KEY}`).then(r => r.json()),
-            fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.DEALERS)}?key=${CONFIG.API_KEY}`).then(r => r.json())
+            fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.DEALERS)}?key=${CONFIG.API_KEY}`).then(r => r.json()),
+            fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.SHIPMENTS)}?key=${CONFIG.API_KEY}`).then(r => r.json()).catch(() => ({values: []}))
         ]);
         
         function parse(data) {
@@ -88,6 +97,7 @@ async function loadData() {
         DATA.orders = parse(ordersRes);
         DATA.orderItems = parse(itemsRes);
         DATA.dealers = parse(dealersRes);
+        DATA.shipments = parse(shipmentsRes);
         DATA.loaded = true;
         
         console.log('✅ Data loaded:', DATA);
@@ -105,7 +115,7 @@ function render() {
     if (!DATA.loaded && !DATA.error) return;
     if (DATA.error) { app.innerHTML = errorPage(); return; }
     if (S.page === 'login') app.innerHTML = loginPage();
-    else if (S.page === 'orders') app.innerHTML = layout(ordersPage());
+    else if (S.page === 'main') app.innerHTML = layout(mainContent());
     else if (S.page === 'detail') app.innerHTML = layout(detailPage());
     bind();
 }
@@ -130,7 +140,7 @@ function loginPage() {
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-800 mb-2">STELLA</h1>
                 <p class="text-gray-500">${t('welcome')}</p>
-                <p class="text-green-500 text-sm mt-2">✓ ${DATA.orders.length} orders, ${DATA.orderItems.length} items</p>
+                <p class="text-green-500 text-sm mt-2">✓ ${DATA.orders.length} orders, ${DATA.shipments.length} shipments</p>
             </div>
             <form id="loginForm" class="space-y-4">
                 <div>
@@ -170,18 +180,95 @@ function layout(content) {
     </div>`;
 }
 
+function mainContent() {
+    const ordersCount = DATA.orders.filter(o => o.dealer_code === S.user?.dealer_code).length;
+    const shipmentsCount = DATA.shipments.filter(s => s.dealer_code === S.user?.dealer_code).length;
+    
+    return `
+    <div class="flex border-b mb-6">
+        <button onclick="setTab('orders')" class="px-6 py-3 ${S.tab === 'orders' ? 'tab-active' : 'tab-inactive'}">
+            📦 ${t('myOrders')} (${ordersCount})
+        </button>
+        <button onclick="setTab('shipments')" class="px-6 py-3 ${S.tab === 'shipments' ? 'tab-active' : 'tab-inactive'}">
+            🚚 ${t('shipments')} (${shipmentsCount})
+        </button>
+    </div>
+    ${S.tab === 'orders' ? ordersPage() : shipmentsPage()}`;
+}
+
 function ordersPage() {
     const orders = DATA.orders
         .filter(o => o.dealer_code === S.user?.dealer_code)
         .sort((a, b) => {
             const dateA = new Date(a.order_date || 0);
             const dateB = new Date(b.order_date || 0);
-            return dateB - dateA; // newest first
+            return dateB - dateA;
         });
     if (!orders.length) return `<div class="bg-white rounded-xl p-12 text-center text-gray-500">${t('noOrders')}</div>`;
     
-    return `<h2 class="text-xl font-semibold mb-6">${t('myOrders')} (${orders.length})</h2>
-    <div class="space-y-4">${orders.map(o => orderCard(o)).join('')}</div>`;
+    return `<div class="space-y-4">${orders.map(o => orderCard(o)).join('')}</div>`;
+}
+
+function shipmentsPage() {
+    const shipments = DATA.shipments
+        .filter(s => s.dealer_code === S.user?.dealer_code)
+        .sort((a, b) => {
+            const dateA = new Date(fmtDate(a.order_date) || 0);
+            const dateB = new Date(fmtDate(b.order_date) || 0);
+            return dateB - dateA;
+        });
+    
+    if (!shipments.length) return `<div class="bg-white rounded-xl p-12 text-center text-gray-500">${t('noShipments')}</div>`;
+    
+    // Group by order
+    const byOrder = {};
+    let totalEur = 0;
+    shipments.forEach(s => {
+        if (!byOrder[s.order_id]) byOrder[s.order_id] = { date: s.order_date, items: [], total: 0 };
+        byOrder[s.order_id].items.push(s);
+        const amt = parseFloat(s.amount_eur) || 0;
+        byOrder[s.order_id].total += amt;
+        totalEur += amt;
+    });
+    
+    return `
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div class="flex justify-between items-center">
+            <h3 class="font-semibold">${t('totalShipped')}</h3>
+            <span class="text-2xl font-bold text-green-600">${fmt(totalEur)}</span>
+        </div>
+    </div>
+    
+    <div class="space-y-4">
+        ${Object.entries(byOrder).map(([orderId, data]) => `
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="p-4 bg-gray-50 border-b flex justify-between items-center cursor-pointer" onclick="toggleShipment('${orderId}')">
+                <div>
+                    <span class="font-semibold">${orderId}</span>
+                    <span class="text-gray-500 text-sm ml-2">${fmtDate(data.date)}</span>
+                    <span class="text-gray-400 text-sm ml-2">(${data.items.length} items)</span>
+                </div>
+                <span class="font-semibold text-green-600">${fmt(data.total)}</span>
+            </div>
+            <div id="ship-${orderId}" class="hidden">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b bg-gray-50">
+                            <th class="text-left py-2 px-4 text-sm font-medium text-gray-500">${t('product')}</th>
+                            <th class="text-right py-2 px-4 text-sm font-medium text-gray-500">${t('total')} (EUR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.items.map(item => `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="py-2 px-4 text-sm">${item.product}</td>
+                            <td class="py-2 px-4 text-sm text-right font-medium">${fmt(item.amount_eur)}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>`).join('')}
+    </div>`;
 }
 
 function orderCard(o) {
@@ -233,7 +320,7 @@ function orderCard(o) {
 
 function detailPage() {
     const o = DATA.orders.find(x => x.order_id === S.selOrder);
-    if (!o) { S.page = 'orders'; render(); return ''; }
+    if (!o) { S.page = 'main'; render(); return ''; }
     
     const items = DATA.orderItems.filter(i => i.order_id === S.selOrder);
     
@@ -274,7 +361,7 @@ function detailPage() {
     }
     
     return `
-    <button onclick="S.page='orders';render()" class="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6">← ${t('back')}</button>
+    <button onclick="S.page='main';render()" class="flex items-center gap-2 text-gray-600 hover:text-gray-800 mb-6">← ${t('back')}</button>
     
     <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
         <div class="flex justify-between items-start mb-6">
@@ -367,8 +454,13 @@ function detailPage() {
 }
 
 function setLang(l) { S.lang = l; render(); }
-function logout() { S = { page: 'login', lang: S.lang, user: null, selOrder: null }; render(); }
+function setTab(tab) { S.tab = tab; render(); }
+function logout() { S = { page: 'login', lang: S.lang, user: null, selOrder: null, tab: 'orders' }; render(); }
 function viewOrder(id) { S.selOrder = id; S.page = 'detail'; render(); }
+function toggleShipment(id) {
+    const el = document.getElementById('ship-' + id);
+    if (el) el.classList.toggle('hidden');
+}
 
 function bind() {
     const form = document.getElementById('loginForm');
@@ -379,12 +471,14 @@ function bind() {
             const pass = document.getElementById('pass').value;
             
             const dealerOrders = DATA.orders.filter(o => o.dealer_code === code);
+            const dealerShipments = DATA.shipments.filter(s => s.dealer_code === code);
             const dealer = DATA.dealers.find(d => d.dealer_code === code);
             
-            if ((dealerOrders.length > 0 || dealer) && pass === 'stella2024') {
-                S.user = dealer || { dealer_code: code, company_name: dealerOrders[0]?.dealer_name || code };
+            if ((dealerOrders.length > 0 || dealerShipments.length > 0 || dealer) && pass === 'stella2024') {
+                S.user = dealer || { dealer_code: code, company_name: dealerOrders[0]?.dealer_name || dealerShipments[0]?.dealer_name || code };
                 S.lang = dealer?.language || 'en';
-                S.page = 'orders';
+                S.page = 'main';
+                S.tab = 'orders';
                 render();
             } else {
                 document.getElementById('err').textContent = t('error');
@@ -394,7 +488,14 @@ function bind() {
     }
 }
 
+// Initial load
 loadData();
+
+// Auto-refresh every 15 minutes
+setInterval(() => {
+    console.log('🔄 Auto-refreshing data...');
+    loadData();
+}, 900000);
     </script>
 </body>
 </html>
