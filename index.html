@@ -12,6 +12,9 @@
         .status-production { background: #fef3c7; color: #92400e; }
         .status-ready { background: #d1fae5; color: #065f46; }
         .status-shipped { background: #dbeafe; color: #1e40af; }
+        .item-reserved { background: #dbeafe; color: #1e40af; }
+        .item-toproduce { background: #fef3c7; color: #92400e; }
+        .item-shipped { background: #d1fae5; color: #065f46; }
         .progress-bar { background: #e5e7eb; border-radius: 9999px; height: 8px; overflow: hidden; }
         .progress-fill { background: linear-gradient(90deg, #3b82f6, #10b981); height: 100%; transition: width 0.3s; }
     </style>
@@ -28,59 +31,47 @@
     </div>
     
     <script>
-// ============================================
-// CONFIGURATION
-// ============================================
 const CONFIG = {
     SPREADSHEET_ID: '1kQcSiTcmPu1dfbBH9wVEOeYOpgSXlfzbeur8u32373k',
     API_KEY: 'AIzaSyBaJW2t64e9TI3_Xw8-fgo9iB-o37WrBDM',
-    SHEETS: {
-        ORDERS: 'Orders',
-        DEALERS: 'Dealers'
-    }
+    SHEETS: { ORDERS: 'Orders', ORDER_ITEMS: 'Order Items', DEALERS: 'Dealers' }
 };
 
-// ============================================
-// TRANSLATIONS
-// ============================================
 const T = {
-    en: { welcome:"Stella Dealer Portal", login:"Login", dealerCode:"Dealer Code", password:"Password", myOrders:"My Orders", logout:"Logout", orderNo:"Order #", date:"Order Date", status:"Status", ready:"Ready Date", shipped:"Ship Date", total:"Total", progress:"Progress", details:"Details", noOrders:"No orders found", pending:"In Queue", production:"In Production", readyStatus:"Ready", shippedStatus:"Shipped", back:"Back", manager:"Manager", prepaid:"Prepaid", balance:"Balance", plan:"Plan", fact:"Actual", error:"Invalid credentials", daysInProd:"Days in production" },
-    de: { welcome:"Stella Händlerportal", login:"Anmelden", dealerCode:"Händlercode", password:"Passwort", myOrders:"Bestellungen", logout:"Abmelden", orderNo:"Best.Nr.", date:"Bestelldatum", status:"Status", ready:"Fertigstellung", shipped:"Versand", total:"Gesamt", progress:"Fortschritt", details:"Details", noOrders:"Keine Bestellungen", pending:"In Warteschlange", production:"In Produktion", readyStatus:"Fertig", shippedStatus:"Versendet", back:"Zurück", manager:"Manager", prepaid:"Vorauszahlung", balance:"Restbetrag", plan:"Plan", fact:"Ist", error:"Ungültige Daten", daysInProd:"Tage in Produktion" },
-    it: { welcome:"Portale Stella", login:"Accedi", dealerCode:"Codice", password:"Password", myOrders:"Ordini", logout:"Esci", orderNo:"Ordine", date:"Data ordine", status:"Stato", ready:"Data pronto", shipped:"Data spedizione", total:"Totale", progress:"Avanzamento", details:"Dettagli", noOrders:"Nessun ordine", pending:"In coda", production:"In produzione", readyStatus:"Pronto", shippedStatus:"Spedito", back:"Indietro", manager:"Manager", prepaid:"Prepagato", balance:"Saldo", plan:"Piano", fact:"Effettivo", error:"Credenziali errate", daysInProd:"Giorni in produzione" },
-    tr: { welcome:"Stella Bayi Portalı", login:"Giriş", dealerCode:"Bayi Kodu", password:"Şifre", myOrders:"Siparişlerim", logout:"Çıkış", orderNo:"Sipariş No", date:"Sipariş Tarihi", status:"Durum", ready:"Hazır Tarihi", shipped:"Sevk Tarihi", total:"Toplam", progress:"İlerleme", details:"Detay", noOrders:"Sipariş bulunamadı", pending:"Sırada", production:"Üretimde", readyStatus:"Hazır", shippedStatus:"Sevk Edildi", back:"Geri", manager:"Yönetici", prepaid:"Ön Ödeme", balance:"Bakiye", plan:"Plan", fact:"Gerçekleşen", error:"Geçersiz giriş", daysInProd:"Üretimde gün" },
-    el: { welcome:"Πύλη Stella", login:"Σύνδεση", dealerCode:"Κωδικός", password:"Κωδικός", myOrders:"Παραγγελίες", logout:"Έξοδος", orderNo:"Αρ. Παραγγελίας", date:"Ημ. Παραγγελίας", status:"Κατάσταση", ready:"Ημ. Ετοιμότητας", shipped:"Ημ. Αποστολής", total:"Σύνολο", progress:"Πρόοδος", details:"Λεπτομέρειες", noOrders:"Δεν βρέθηκαν", pending:"Σε αναμονή", production:"Σε παραγωγή", readyStatus:"Έτοιμο", shippedStatus:"Απεστάλη", back:"Πίσω", manager:"Διαχειριστής", prepaid:"Προπληρωμή", balance:"Υπόλοιπο", plan:"Πλάνο", fact:"Πραγματικό", error:"Λάθος", daysInProd:"Ημέρες παραγωγής" },
-    nl: { welcome:"Stella Portaal", login:"Inloggen", dealerCode:"Dealercode", password:"Wachtwoord", myOrders:"Bestellingen", logout:"Uitloggen", orderNo:"Bestelnr.", date:"Besteldatum", status:"Status", ready:"Gereed datum", shipped:"Verzenddatum", total:"Totaal", progress:"Voortgang", details:"Details", noOrders:"Geen bestellingen", pending:"In wachtrij", production:"In productie", readyStatus:"Gereed", shippedStatus:"Verzonden", back:"Terug", manager:"Manager", prepaid:"Vooruitbetaald", balance:"Saldo", plan:"Plan", fact:"Werkelijk", error:"Ongeldig", daysInProd:"Dagen in productie" },
-    hu: { welcome:"Stella Portál", login:"Belépés", dealerCode:"Kód", password:"Jelszó", myOrders:"Rendeléseim", logout:"Kilépés", orderNo:"Rendelés", date:"Dátum", status:"Státusz", ready:"Kész dátum", shipped:"Szállítás", total:"Összesen", progress:"Folyamat", details:"Részletek", noOrders:"Nincs rendelés", pending:"Várakozik", production:"Gyártásban", readyStatus:"Kész", shippedStatus:"Kiszállítva", back:"Vissza", manager:"Menedzser", prepaid:"Előleg", balance:"Egyenleg", plan:"Terv", fact:"Tényleges", error:"Hibás", daysInProd:"Napok gyártásban" },
-    ru: { welcome:"Портал дилеров Stella", login:"Вход", dealerCode:"Код дилера", password:"Пароль", myOrders:"Мои заказы", logout:"Выход", orderNo:"№ заказа", date:"Дата заказа", status:"Статус", ready:"Дата готовности", shipped:"Дата отгрузки", total:"Сумма", progress:"Прогресс", details:"Подробнее", noOrders:"Заказы не найдены", pending:"В очереди", production:"В производстве", readyStatus:"Готов", shippedStatus:"Отгружен", back:"Назад", manager:"Менеджер", prepaid:"Предоплата", balance:"Остаток", plan:"План", fact:"Факт", error:"Неверные данные", daysInProd:"Дней в производстве" },
-    es: { welcome:"Portal Stella", login:"Entrar", dealerCode:"Código", password:"Contraseña", myOrders:"Mis pedidos", logout:"Salir", orderNo:"Pedido", date:"Fecha", status:"Estado", ready:"Fecha listo", shipped:"Fecha envío", total:"Total", progress:"Progreso", details:"Detalles", noOrders:"Sin pedidos", pending:"En cola", production:"En producción", readyStatus:"Listo", shippedStatus:"Enviado", back:"Volver", manager:"Gerente", prepaid:"Prepago", balance:"Saldo", plan:"Plan", fact:"Real", error:"Inválido", daysInProd:"Días en producción" }
+    en: { welcome:"Stella Dealer Portal", login:"Login", dealerCode:"Dealer Code", password:"Password", myOrders:"My Orders", logout:"Logout", orderNo:"Order #", date:"Order Date", status:"Status", ready:"Ready Date", shipped:"Ship Date", total:"Total", progress:"Progress", details:"Details", noOrders:"No orders found", pending:"In Queue", production:"In Production", readyStatus:"Ready", shippedStatus:"Shipped", back:"Back", manager:"Manager", prepaid:"Prepaid", balance:"Balance", plan:"Plan", fact:"Actual", error:"Invalid credentials", daysInProd:"Days", items:"Order Items", product:"Product", qty:"Qty", itemStatus:"Status", reserved:"Reserved", toProduce:"To Produce" },
+    de: { welcome:"Stella Händlerportal", login:"Anmelden", dealerCode:"Händlercode", password:"Passwort", myOrders:"Bestellungen", logout:"Abmelden", orderNo:"Best.Nr.", date:"Bestelldatum", status:"Status", ready:"Fertigstellung", shipped:"Versand", total:"Gesamt", progress:"Fortschritt", details:"Details", noOrders:"Keine Bestellungen", pending:"In Warteschlange", production:"In Produktion", readyStatus:"Fertig", shippedStatus:"Versendet", back:"Zurück", manager:"Manager", prepaid:"Vorauszahlung", balance:"Restbetrag", plan:"Plan", fact:"Ist", error:"Ungültige Daten", daysInProd:"Tage", items:"Bestellpositionen", product:"Produkt", qty:"Menge", itemStatus:"Status", reserved:"Reserviert", toProduce:"Zu produzieren" },
+    it: { welcome:"Portale Stella", login:"Accedi", dealerCode:"Codice", password:"Password", myOrders:"Ordini", logout:"Esci", orderNo:"Ordine", date:"Data", status:"Stato", ready:"Data pronto", shipped:"Spedizione", total:"Totale", progress:"Avanzamento", details:"Dettagli", noOrders:"Nessun ordine", pending:"In coda", production:"In produzione", readyStatus:"Pronto", shippedStatus:"Spedito", back:"Indietro", manager:"Manager", prepaid:"Prepagato", balance:"Saldo", plan:"Piano", fact:"Effettivo", error:"Credenziali errate", daysInProd:"Giorni", items:"Articoli", product:"Prodotto", qty:"Qtà", itemStatus:"Stato", reserved:"Riservato", toProduce:"Da produrre" },
+    tr: { welcome:"Stella Bayi Portalı", login:"Giriş", dealerCode:"Bayi Kodu", password:"Şifre", myOrders:"Siparişlerim", logout:"Çıkış", orderNo:"Sipariş No", date:"Tarih", status:"Durum", ready:"Hazır Tarihi", shipped:"Sevk Tarihi", total:"Toplam", progress:"İlerleme", details:"Detay", noOrders:"Sipariş yok", pending:"Sırada", production:"Üretimde", readyStatus:"Hazır", shippedStatus:"Sevk Edildi", back:"Geri", manager:"Yönetici", prepaid:"Ön Ödeme", balance:"Bakiye", plan:"Plan", fact:"Gerçekleşen", error:"Geçersiz giriş", daysInProd:"Gün", items:"Sipariş Kalemleri", product:"Ürün", qty:"Adet", itemStatus:"Durum", reserved:"Rezerve", toProduce:"Üretilecek" },
+    el: { welcome:"Πύλη Stella", login:"Σύνδεση", dealerCode:"Κωδικός", password:"Κωδικός", myOrders:"Παραγγελίες", logout:"Έξοδος", orderNo:"Αρ.", date:"Ημ/νία", status:"Κατάσταση", ready:"Ετοιμότητα", shipped:"Αποστολή", total:"Σύνολο", progress:"Πρόοδος", details:"Λεπτομέρειες", noOrders:"Δεν βρέθηκαν", pending:"Σε αναμονή", production:"Σε παραγωγή", readyStatus:"Έτοιμο", shippedStatus:"Απεστάλη", back:"Πίσω", manager:"Διαχειριστής", prepaid:"Προπληρωμή", balance:"Υπόλοιπο", plan:"Πλάνο", fact:"Πραγματικό", error:"Λάθος", daysInProd:"Ημέρες", items:"Προϊόντα", product:"Προϊόν", qty:"Ποσ.", itemStatus:"Κατάσταση", reserved:"Δεσμευμένο", toProduce:"Προς παραγωγή" },
+    nl: { welcome:"Stella Portaal", login:"Inloggen", dealerCode:"Code", password:"Wachtwoord", myOrders:"Bestellingen", logout:"Uitloggen", orderNo:"Nr.", date:"Datum", status:"Status", ready:"Gereed", shipped:"Verzending", total:"Totaal", progress:"Voortgang", details:"Details", noOrders:"Geen bestellingen", pending:"In wachtrij", production:"In productie", readyStatus:"Gereed", shippedStatus:"Verzonden", back:"Terug", manager:"Manager", prepaid:"Vooruitbetaald", balance:"Saldo", plan:"Plan", fact:"Werkelijk", error:"Ongeldig", daysInProd:"Dagen", items:"Artikelen", product:"Product", qty:"Aantal", itemStatus:"Status", reserved:"Gereserveerd", toProduce:"Te produceren" },
+    hu: { welcome:"Stella Portál", login:"Belépés", dealerCode:"Kód", password:"Jelszó", myOrders:"Rendeléseim", logout:"Kilépés", orderNo:"Szám", date:"Dátum", status:"Státusz", ready:"Kész", shipped:"Szállítás", total:"Összesen", progress:"Folyamat", details:"Részletek", noOrders:"Nincs rendelés", pending:"Várakozik", production:"Gyártásban", readyStatus:"Kész", shippedStatus:"Kiszállítva", back:"Vissza", manager:"Menedzser", prepaid:"Előleg", balance:"Egyenleg", plan:"Terv", fact:"Tényleges", error:"Hibás", daysInProd:"Nap", items:"Tételek", product:"Termék", qty:"Db", itemStatus:"Státusz", reserved:"Foglalt", toProduce:"Gyártandó" },
+    ru: { welcome:"Портал дилеров Stella", login:"Вход", dealerCode:"Код дилера", password:"Пароль", myOrders:"Мои заказы", logout:"Выход", orderNo:"№ заказа", date:"Дата", status:"Статус", ready:"Готовность", shipped:"Отгрузка", total:"Сумма", progress:"Прогресс", details:"Подробнее", noOrders:"Заказы не найдены", pending:"В очереди", production:"В производстве", readyStatus:"Готов", shippedStatus:"Отгружен", back:"Назад", manager:"Менеджер", prepaid:"Предоплата", balance:"Остаток", plan:"План", fact:"Факт", error:"Неверные данные", daysInProd:"Дней", items:"Состав заказа", product:"Товар", qty:"Кол-во", itemStatus:"Статус", reserved:"В резерве", toProduce:"К производству" },
+    es: { welcome:"Portal Stella", login:"Entrar", dealerCode:"Código", password:"Contraseña", myOrders:"Mis pedidos", logout:"Salir", orderNo:"Pedido", date:"Fecha", status:"Estado", ready:"Fecha listo", shipped:"Envío", total:"Total", progress:"Progreso", details:"Detalles", noOrders:"Sin pedidos", pending:"En cola", production:"En producción", readyStatus:"Listo", shippedStatus:"Enviado", back:"Volver", manager:"Gerente", prepaid:"Prepago", balance:"Saldo", plan:"Plan", fact:"Real", error:"Inválido", daysInProd:"Días", items:"Artículos", product:"Producto", qty:"Cant.", itemStatus:"Estado", reserved:"Reservado", toProduce:"A producir" }
 };
 
 const FLAGS = { en:'🇬🇧', de:'🇩🇪', it:'🇮🇹', tr:'🇹🇷', el:'🇬🇷', nl:'🇳🇱', hu:'🇭🇺', ru:'🇷🇺', es:'🇪🇸' };
 
-// ============================================
-// DATA & STATE
-// ============================================
-let DATA = { orders: [], dealers: [], loaded: false, error: null };
+let DATA = { orders: [], orderItems: [], dealers: [], loaded: false, error: null };
 let S = { page: 'login', lang: 'en', user: null, selOrder: null };
 
 const t = k => T[S.lang]?.[k] || T.en[k] || k;
 const fmt = n => '€' + parseFloat(n || 0).toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 const fmtDate = d => {
     if (!d) return '-';
-    if (typeof d === 'string' && d.includes('-')) return d.split('T')[0];
-    if (d instanceof Date) return d.toISOString().split('T')[0];
+    if (typeof d === 'string') {
+        if (d.includes('T')) return d.split('T')[0];
+        if (d.includes('-')) return d;
+    }
     return d;
 };
 
-// ============================================
-// LOAD DATA
-// ============================================
 async function loadData() {
     const baseUrl = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values`;
     
     try {
-        const [ordersRes, dealersRes] = await Promise.all([
+        const [ordersRes, itemsRes, dealersRes] = await Promise.all([
             fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.ORDERS)}?key=${CONFIG.API_KEY}`).then(r => r.json()),
+            fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.ORDER_ITEMS)}?key=${CONFIG.API_KEY}`).then(r => r.json()),
             fetch(`${baseUrl}/${encodeURIComponent(CONFIG.SHEETS.DEALERS)}?key=${CONFIG.API_KEY}`).then(r => r.json())
         ]);
         
@@ -95,6 +86,7 @@ async function loadData() {
         }
         
         DATA.orders = parse(ordersRes);
+        DATA.orderItems = parse(itemsRes);
         DATA.dealers = parse(dealersRes);
         DATA.loaded = true;
         
@@ -108,29 +100,18 @@ async function loadData() {
     }
 }
 
-// ============================================
-// RENDER
-// ============================================
 function render() {
     const app = document.getElementById('app');
-    
     if (!DATA.loaded && !DATA.error) return;
-    
-    if (DATA.error) {
-        app.innerHTML = errorPage();
-        return;
-    }
-    
+    if (DATA.error) { app.innerHTML = errorPage(); return; }
     if (S.page === 'login') app.innerHTML = loginPage();
     else if (S.page === 'orders') app.innerHTML = layout(ordersPage());
     else if (S.page === 'detail') app.innerHTML = layout(detailPage());
-    
     bind();
 }
 
 function errorPage() {
-    return `
-    <div class="min-h-screen gradient-bg flex items-center justify-center p-4">
+    return `<div class="min-h-screen gradient-bg flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
             <div class="text-6xl mb-4">❌</div>
             <h2 class="text-xl font-bold text-gray-800 mb-2">Connection Error</h2>
@@ -141,8 +122,7 @@ function errorPage() {
 }
 
 function loginPage() {
-    return `
-    <div class="min-h-screen gradient-bg flex items-center justify-center p-4">
+    return `<div class="min-h-screen gradient-bg flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
             <div class="flex justify-center flex-wrap gap-2 mb-6">
                 ${Object.keys(FLAGS).map(l=>`<button onclick="setLang('${l}')" class="w-9 h-9 rounded-full ${S.lang===l?'ring-2 ring-blue-500':''} text-xl hover:scale-110 transition">${FLAGS[l]}</button>`).join('')}
@@ -150,7 +130,7 @@ function loginPage() {
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-800 mb-2">STELLA</h1>
                 <p class="text-gray-500">${t('welcome')}</p>
-                <p class="text-green-500 text-sm mt-2">✓ Connected (${DATA.orders.length} orders)</p>
+                <p class="text-green-500 text-sm mt-2">✓ ${DATA.orders.length} orders, ${DATA.orderItems.length} items</p>
             </div>
             <form id="loginForm" class="space-y-4">
                 <div>
@@ -172,8 +152,7 @@ function loginPage() {
 }
 
 function layout(content) {
-    return `
-    <div class="min-h-screen bg-gray-50">
+    return `<div class="min-h-screen bg-gray-50">
         <header class="gradient-bg text-white">
             <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-3">
@@ -193,16 +172,10 @@ function layout(content) {
 
 function ordersPage() {
     const orders = DATA.orders.filter(o => o.dealer_code === S.user?.dealer_code);
+    if (!orders.length) return `<div class="bg-white rounded-xl p-12 text-center text-gray-500">${t('noOrders')}</div>`;
     
-    if (!orders.length) {
-        return `<div class="bg-white rounded-xl p-12 text-center text-gray-500">${t('noOrders')}</div>`;
-    }
-    
-    return `
-    <h2 class="text-xl font-semibold mb-6">${t('myOrders')} (${orders.length})</h2>
-    <div class="space-y-4">
-        ${orders.map(o => orderCard(o)).join('')}
-    </div>`;
+    return `<h2 class="text-xl font-semibold mb-6">${t('myOrders')} (${orders.length})</h2>
+    <div class="space-y-4">${orders.map(o => orderCard(o)).join('')}</div>`;
 }
 
 function orderCard(o) {
@@ -213,7 +186,6 @@ function orderCard(o) {
         if (s.includes('shipped') || s.includes('отгруж')) return 'status-shipped';
         return 'status-pending';
     };
-    
     const statusTxt = s => {
         s = (s||'').toLowerCase();
         if (s.includes('production') || s.includes('производ')) return t('production');
@@ -222,46 +194,33 @@ function orderCard(o) {
         return t('pending');
     };
     
-    // Parse progress percentage
     let progress = 0;
     if (o.progress__) {
         const match = o.progress__.toString().replace(',', '.').match(/[\d.]+/);
         if (match) progress = parseFloat(match[0]);
     }
     
-    return `
-    <div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition cursor-pointer" onclick="viewOrder('${o.order_id}')">
+    const itemCount = DATA.orderItems.filter(i => i.order_id === o.order_id).length;
+    
+    return `<div class="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition cursor-pointer" onclick="viewOrder('${o.order_id}')">
         <div class="flex justify-between items-start mb-4">
             <div>
                 <p class="font-semibold text-lg">${o.order_id}</p>
-                <p class="text-sm text-gray-500">${fmtDate(o.order_date)}</p>
+                <p class="text-sm text-gray-500">${fmtDate(o.order_date)} • ${itemCount} ${t('items').toLowerCase()}</p>
             </div>
             <span class="px-3 py-1 rounded-full text-sm font-medium ${statusCls(o.status)}">${statusTxt(o.status)}</span>
         </div>
-        
         <div class="mb-4">
             <div class="flex justify-between text-sm mb-1">
                 <span class="text-gray-500">${t('progress')}</span>
                 <span class="font-medium">${progress}%</span>
             </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: ${progress}%"></div>
-            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
         </div>
-        
         <div class="grid grid-cols-3 gap-4 text-sm">
-            <div>
-                <p class="text-gray-500">${t('ready')} (${t('plan')})</p>
-                <p class="font-medium">${fmtDate(o.ready_date_plan)}</p>
-            </div>
-            <div>
-                <p class="text-gray-500">${t('shipped')} (${t('plan')})</p>
-                <p class="font-medium">${fmtDate(o.ship_date_plan)}</p>
-            </div>
-            <div class="text-right">
-                <p class="text-gray-500">${t('total')}</p>
-                <p class="font-semibold text-blue-600">${fmt(o.total_eur)}</p>
-            </div>
+            <div><p class="text-gray-500">${t('ready')} (${t('plan')})</p><p class="font-medium">${fmtDate(o.ready_date_plan)}</p></div>
+            <div><p class="text-gray-500">${t('shipped')} (${t('plan')})</p><p class="font-medium">${fmtDate(o.ship_date_plan)}</p></div>
+            <div class="text-right"><p class="text-gray-500">${t('total')}</p><p class="font-semibold text-blue-600">${fmt(o.total_eur)}</p></div>
         </div>
     </div>`;
 }
@@ -270,6 +229,8 @@ function detailPage() {
     const o = DATA.orders.find(x => x.order_id === S.selOrder);
     if (!o) { S.page = 'orders'; render(); return ''; }
     
+    const items = DATA.orderItems.filter(i => i.order_id === S.selOrder);
+    
     const statusCls = s => {
         s = (s||'').toLowerCase();
         if (s.includes('production') || s.includes('производ')) return 'status-production';
@@ -277,13 +238,27 @@ function detailPage() {
         if (s.includes('shipped') || s.includes('отгруж')) return 'status-shipped';
         return 'status-pending';
     };
-    
     const statusTxt = s => {
         s = (s||'').toLowerCase();
         if (s.includes('production') || s.includes('производ')) return t('production');
         if (s.includes('ready') || s.includes('готов')) return t('readyStatus');
         if (s.includes('shipped') || s.includes('отгруж')) return t('shippedStatus');
         return t('pending');
+    };
+    
+    const itemStatusCls = s => {
+        s = (s||'').toLowerCase();
+        if (s.includes('reserved') || s.includes('резерв')) return 'item-reserved';
+        if (s.includes('produce') || s.includes('обеспеч')) return 'item-toproduce';
+        if (s.includes('shipped') || s.includes('отгруж')) return 'item-shipped';
+        return 'bg-gray-100 text-gray-600';
+    };
+    const itemStatusTxt = s => {
+        s = (s||'').toLowerCase();
+        if (s.includes('reserved') || s.includes('резерв')) return t('reserved');
+        if (s.includes('produce') || s.includes('обеспеч')) return t('toProduce');
+        if (s.includes('shipped') || s.includes('отгруж')) return t('shippedStatus');
+        return s;
     };
     
     let progress = 0;
@@ -309,13 +284,11 @@ function detailPage() {
                 <span class="text-gray-500">${t('progress')}</span>
                 <span class="font-bold text-lg">${progress}%</span>
             </div>
-            <div class="progress-bar h-3">
-                <div class="progress-fill" style="width: ${progress}%"></div>
-            </div>
+            <div class="progress-bar h-3"><div class="progress-fill" style="width: ${progress}%"></div></div>
             ${o.days_in_production ? `<p class="text-sm text-gray-500 mt-2">${t('daysInProd')}: ${o.days_in_production}</p>` : ''}
         </div>
         
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div class="p-4 bg-gray-50 rounded-lg">
                 <p class="text-sm text-gray-500">${t('date')}</p>
                 <p class="font-medium">${fmtDate(o.order_date)}</p>
@@ -335,9 +308,9 @@ function detailPage() {
         </div>
     </div>
     
-    <div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
         <h3 class="font-semibold mb-4">💰 ${t('total')}</h3>
-        <div class="grid grid-cols-3 gap-6">
+        <div class="grid grid-cols-3 gap-4">
             <div class="p-4 bg-blue-50 rounded-lg">
                 <p class="text-sm text-gray-500">${t('total')}</p>
                 <p class="text-xl font-bold text-blue-600">${fmt(o.total_eur)}</p>
@@ -351,18 +324,42 @@ function detailPage() {
                 <p class="text-xl font-bold text-orange-600">${fmt(o.balance_eur)}</p>
             </div>
         </div>
-        
-        ${o.manager ? `
-        <div class="mt-6 pt-6 border-t">
-            <p class="text-sm text-gray-500">${t('manager')}</p>
-            <p class="font-medium">${o.manager}</p>
-        </div>` : ''}
-    </div>`;
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <h3 class="font-semibold mb-4">📦 ${t('items')} (${items.length})</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b">
+                        <th class="text-left py-3 px-2 text-sm font-medium text-gray-500">#</th>
+                        <th class="text-left py-3 px-2 text-sm font-medium text-gray-500">${t('product')}</th>
+                        <th class="text-center py-3 px-2 text-sm font-medium text-gray-500">${t('itemStatus')}</th>
+                        <th class="text-right py-3 px-2 text-sm font-medium text-gray-500">${t('qty')}</th>
+                        <th class="text-right py-3 px-2 text-sm font-medium text-gray-500">${t('total')}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${items.map((item, idx) => `
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-3 px-2 text-sm text-gray-400">${item.line || idx + 1}</td>
+                        <td class="py-3 px-2">
+                            <p class="font-medium text-sm">${item.product_name}</p>
+                        </td>
+                        <td class="py-3 px-2 text-center">
+                            <span class="px-2 py-1 rounded text-xs font-medium ${itemStatusCls(item.item_status)}">${itemStatusTxt(item.item_status)}</span>
+                        </td>
+                        <td class="py-3 px-2 text-right font-medium">${item.quantity}</td>
+                        <td class="py-3 px-2 text-right font-medium">${fmt(item.total_eur)}</td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    ${o.manager ? `<div class="mt-6 text-sm text-gray-500">${t('manager')}: ${o.manager}</div>` : ''}`;
 }
 
-// ============================================
-// ACTIONS
-// ============================================
 function setLang(l) { S.lang = l; render(); }
 function logout() { S = { page: 'login', lang: S.lang, user: null, selOrder: null }; render(); }
 function viewOrder(id) { S.selOrder = id; S.page = 'detail'; render(); }
@@ -375,7 +372,6 @@ function bind() {
             const code = document.getElementById('code').value.toUpperCase().trim();
             const pass = document.getElementById('pass').value;
             
-            // Check if dealer exists in orders
             const dealerOrders = DATA.orders.filter(o => o.dealer_code === code);
             const dealer = DATA.dealers.find(d => d.dealer_code === code);
             
@@ -392,7 +388,6 @@ function bind() {
     }
 }
 
-// Start
 loadData();
     </script>
 </body>
