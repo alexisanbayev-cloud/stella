@@ -177,32 +177,87 @@ function layout(content) {
 }
 
 function mainContent() {
-    const ordersCount = DATA.orders.filter(o => o.dealer_code === S.user?.dealer_code).length;
-    const shipmentsCount = DATA.shipments.filter(s => s.dealer_code === S.user?.dealer_code).length;
+    const orders = DATA.orders.filter(o => S.user?.isAdmin || o.dealer_code === S.user?.dealer_code);
+    const shipments = DATA.shipments.filter(s => S.user?.isAdmin || s.dealer_code === S.user?.dealer_code);
+    const ordersCount = orders.length;
+    const shipmentsCount = shipments.length;
+    const totalOrdersEur = orders.reduce((sum, o) => sum + (parseFloat(o.total_eur) || 0), 0);
+    const totalShipmentsEur = shipments.reduce((sum, s) => sum + (parseFloat(s.amount_eur) || 0), 0);
     
     return `
     <div class="flex border-b mb-6">
         <button onclick="setTab('orders')" class="px-6 py-3 ${S.tab === 'orders' ? 'tab-active' : 'tab-inactive'}">
-            📦 ${t('myOrders')} (${ordersCount})
+            📦 ${t('myOrders')} (${ordersCount}) — ${fmt(totalOrdersEur)}
         </button>
         <button onclick="setTab('shipments')" class="px-6 py-3 ${S.tab === 'shipments' ? 'tab-active' : 'tab-inactive'}">
-            🚚 ${t('shipments')} (${shipmentsCount})
+            🚚 ${t('shipments')} (${shipmentsCount}) — ${fmt(totalShipmentsEur)}
         </button>
     </div>
     ${S.tab === 'orders' ? ordersPage() : shipmentsPage()}`;
+}
+
+function getWeekNumber(date) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+    const yearStart = new Date(d.getFullYear(), 0, 1);
+    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return { year: d.getFullYear(), week: weekNo };
+}
+
+function getWeekRange(date) {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d.setDate(diff));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return `${monday.getDate().toString().padStart(2,'0')}.${(monday.getMonth()+1).toString().padStart(2,'0')} - ${sunday.getDate().toString().padStart(2,'0')}.${(sunday.getMonth()+1).toString().padStart(2,'0')}`;
 }
 
 function ordersPage() {
     const orders = DATA.orders
         .filter(o => S.user?.isAdmin || o.dealer_code === S.user?.dealer_code)
         .sort((a, b) => {
-            const dateA = new Date(a.order_date || 0);
-            const dateB = new Date(b.order_date || 0);
-            return dateB - dateA;
+            const dateA = new Date(a.ship_date_plan || a.order_date || 0);
+            const dateB = new Date(b.ship_date_plan || b.order_date || 0);
+            return dateA - dateB;
         });
     if (!orders.length) return `<div class="bg-white rounded-xl p-12 text-center text-gray-500">${t('noOrders')}</div>`;
     
-    return `<div class="space-y-4">${orders.map(o => orderCard(o)).join('')}</div>`;
+    // Group by week
+    const byWeek = {};
+    orders.forEach(o => {
+        const shipDate = o.ship_date_plan || o.order_date;
+        if (!shipDate) return;
+        const { year, week } = getWeekNumber(shipDate);
+        const key = `${year}-W${week.toString().padStart(2,'0')}`;
+        if (!byWeek[key]) {
+            byWeek[key] = { 
+                orders: [], 
+                range: getWeekRange(shipDate),
+                year,
+                week
+            };
+        }
+        byWeek[key].orders.push(o);
+    });
+    
+    const sortedWeeks = Object.entries(byWeek).sort((a, b) => a[0].localeCompare(b[0]));
+    
+    return `<div class="space-y-6">
+        ${sortedWeeks.map(([weekKey, data]) => `
+            <div class="mb-4">
+                <div class="bg-blue-600 text-white px-4 py-2 rounded-t-lg font-semibold flex justify-between items-center">
+                    <span>📅 Week ${data.week} (${data.range})</span>
+                    <span>${data.orders.length} orders</span>
+                </div>
+                <div class="space-y-3 pt-3">
+                    ${data.orders.map(o => orderCard(o)).join('')}
+                </div>
+            </div>
+        `).join('')}
+    </div>`;
 }
 
 function shipmentsPage() {
@@ -243,6 +298,7 @@ function shipmentsPage() {
                     <span class="font-semibold">${orderId}</span>
                     <span class="text-gray-500 text-sm ml-2">${fmtDate(data.date)}</span>
                     <span class="text-gray-400 text-sm ml-2">(${data.items.length} items)</span>
+                    ${S.user?.isAdmin ? `<span class="text-blue-600 text-sm ml-2 font-medium">${data.items[0]?.dealer_code || ''}</span>` : ''}
                 </div>
                 <span class="font-semibold text-green-600">${fmt(data.total)}</span>
             </div>
@@ -296,6 +352,7 @@ function orderCard(o) {
             <div>
                 <p class="font-semibold text-lg">${o.order_id}</p>
                 <p class="text-sm text-gray-500">${fmtDate(o.order_date)} • ${itemCount} ${t('items').toLowerCase()}</p>
+                ${S.user?.isAdmin ? `<p class="text-sm text-blue-600 font-medium">${o.dealer_code} — ${o.dealer_name || ''}</p>` : ''}
             </div>
             <span class="px-3 py-1 rounded-full text-sm font-medium ${statusCls(o.status)}">${statusTxt(o.status)}</span>
         </div>
