@@ -214,39 +214,54 @@ function mainContent() {
     ${S.tab === 'orders' ? ordersPage() : shipmentsPage()}`;
 }
 
+function parseDate(d) {
+    if (!d) return null;
+    if (d instanceof Date) return d;
+    if (typeof d === 'string') {
+        // Handle dd.mm.yyyy format
+        if (d.includes('.')) {
+            const parts = d.split('.');
+            if (parts.length === 3) {
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+        }
+        // Handle yyyy-mm-dd format
+        if (d.includes('-')) {
+            return new Date(d);
+        }
+    }
+    return new Date(d);
+}
+
 function getWeekNumber(date) {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + 4 - (d.getDay() || 7));
-    const yearStart = new Date(d.getFullYear(), 0, 1);
-    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    return { year: d.getFullYear(), week: weekNo };
+    const d = parseDate(date);
+    if (!d || isNaN(d.getTime())) return { year: 0, week: 0 };
+    const tempDate = new Date(d.getTime());
+    tempDate.setHours(0, 0, 0, 0);
+    tempDate.setDate(tempDate.getDate() + 4 - (tempDate.getDay() || 7));
+    const yearStart = new Date(tempDate.getFullYear(), 0, 1);
+    const weekNo = Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
+    return { year: tempDate.getFullYear(), week: weekNo };
 }
 
 function getWeekRange(date) {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(d.setDate(diff));
+    const d = parseDate(date);
+    if (!d || isNaN(d.getTime())) return '';
+    const tempDate = new Date(d.getTime());
+    const day = tempDate.getDay();
+    const diff = tempDate.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(tempDate.setDate(diff));
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     return `${monday.getDate().toString().padStart(2,'0')}.${(monday.getMonth()+1).toString().padStart(2,'0')}.${monday.getFullYear()} - ${sunday.getDate().toString().padStart(2,'0')}.${(sunday.getMonth()+1).toString().padStart(2,'0')}.${sunday.getFullYear()}`;
 }
 
 function ordersPage() {
-    // Filter: only orders from last 3 months and future
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-    
     const orders = DATA.orders
         .filter(o => S.user?.isAdmin || o.dealer_code === S.user?.dealer_code)
-        .filter(o => {
-            const shipDate = new Date(o.ship_date_plan || o.order_date || 0);
-            return shipDate >= threeMonthsAgo;
-        })
         .sort((a, b) => {
-            const dateA = new Date(a.ship_date_plan || a.order_date || 0);
-            const dateB = new Date(b.ship_date_plan || b.order_date || 0);
+            const dateA = parseDate(a.ship_date_plan || a.order_date) || new Date(0);
+            const dateB = parseDate(b.ship_date_plan || b.order_date) || new Date(0);
             return dateA - dateB;
         });
     if (!orders.length) return `<div class="bg-white rounded-xl p-12 text-center text-gray-500">${t('noOrders')}</div>`;
@@ -257,6 +272,7 @@ function ordersPage() {
         const shipDate = o.ship_date_plan || o.order_date;
         if (!shipDate) return;
         const { year, week } = getWeekNumber(shipDate);
+        if (year === 0) return; // Skip invalid dates
         const key = `${year}-W${week.toString().padStart(2,'0')}`;
         if (!byWeek[key]) {
             byWeek[key] = { 
